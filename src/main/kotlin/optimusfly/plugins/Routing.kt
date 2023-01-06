@@ -5,6 +5,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.request.*
+import java.io.File
 
 fun Application.configureRouting() {
 
@@ -13,10 +14,22 @@ fun Application.configureRouting() {
             call.respondText("Hello World!")
         }
 
-        get("/hola"){
+        get("/hola") {
             call.respondText {
                 "Hola Cristhian"
             }
+        }
+
+        get("/fileDownload") {
+            val file = File("./files/saray.jpeg")
+            call.response.header(
+                HttpHeaders.ContentDisposition,
+                ContentDisposition.Inline.withParameter(
+                    ContentDisposition.Parameters.FileName,
+                    "dowloadingImage.jpeg"
+                ).toString()
+            )
+            call.respondFile(file)
         }
     }
 }

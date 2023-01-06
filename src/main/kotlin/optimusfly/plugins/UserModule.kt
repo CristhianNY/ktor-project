@@ -19,7 +19,7 @@ fun Application.userModule() {
 
         post("/login") {
             val user = call.receive<UserModel>()
-
+            call.respond(UserModel(user.email,user.password))
 
         }
     }

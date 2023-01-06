@@ -1,6 +1,7 @@
 val ktor_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
+val ktorm_version: String by project
 
 plugins {
     kotlin("jvm") version "1.8.0"
@@ -28,4 +29,8 @@ dependencies {
     implementation("io.ktor:ktor-serialization:$ktor_version")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")
+    implementation("org.ktorm:ktorm-core:$ktorm_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+    implementation("mysql:mysql-connector-java:8.0.31")
 }
