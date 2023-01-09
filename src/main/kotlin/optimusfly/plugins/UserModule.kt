@@ -45,53 +45,79 @@ fun Application.userModule() {
             val user = call.receive<UserModel>()
         }
 
-        post  ("register-user"){
-            val request= call.receive<UserRequest>()
-            val result =db.insert(UserEntity){
+        post("register-user") {
+            val request = call.receive<UserRequest>()
+
+            val email = request.email.toString()
+            val password = request.hashedPassword()
+
+            val user = db.from(UserEntity).select()
+                .where { UserEntity.email eq email }
+                .map { it[UserEntity.email] }
+                .firstOrNull()
+
+
+            if (user != null) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    UserResponse(success = true, data = "User already exists, please try with another email"))
+                    return@post
+            }
+
+            val result = db.insert(UserEntity) {
                 set(it.name, request.name)
                 set(it.lastName, request.lastName)
                 set(it.email, request.email)
-                set(it.password, request.password)
+                set(it.password, password)
             }
 
-            if(result == SUCCESS_INSERT){
+            if (result == SUCCESS_INSERT) {
                 // sen successfully response to the client
-                call.respond(HttpStatusCode.OK, UserResponse(success= true, data= "values has been successfully inserted"))
-            }else{
-                call.respond(HttpStatusCode.BadRequest, UserResponse(success= true, data= "Error Inserting"))
+                call.respond(
+                    HttpStatusCode.OK,
+                    UserResponse(success = true, data = "values has been successfully inserted")
+                )
+            } else {
+                call.respond(HttpStatusCode.BadRequest, UserResponse(success = true, data = "Error Inserting"))
 
             }
         }
 
-        put("update-user-by-id/{userId}"){
-            val id = call.parameters["userId"]?.toInt() ?:-1
+        put("update-user-by-id/{userId}") {
+            val id = call.parameters["userId"]?.toInt() ?: -1
             val updatedUser = call.receive<UserRequest>()
 
-            val rowAffected = db.update(UserEntity){
+            val rowAffected = db.update(UserEntity) {
                 set(it.name, updatedUser.name)
                 where {
                     it.id eq id
                 }
             }
 
-            if(rowAffected == 1){
-                call.respond(HttpStatusCode.OK, UserResponse(success= true, data= "values has been successfully updated"))
-            }else{
-                call.respond(HttpStatusCode.BadRequest, UserResponse(success= true, data= "Error updated"))
+            if (rowAffected == 1) {
+                call.respond(
+                    HttpStatusCode.OK,
+                    UserResponse(success = true, data = "values has been successfully updated")
+                )
+            } else {
+                call.respond(HttpStatusCode.BadRequest, UserResponse(success = true, data = "Error updated"))
 
             }
         }
 
-        delete("/delete-user-by-id/{userId}"){
+        delete("/delete-user-by-id/{userId}") {
             val id = call.parameters["userId"]?.toInt() ?: -1
-            val rowAffected = db.delete(UserEntity){
+            val rowAffected = db.delete(UserEntity) {
                 it.id eq id
             }
 
-            if(rowAffected == 1){
-                call.respond(HttpStatusCode.OK, UserResponse(success= true, data= "values has been successfully deleted"))
-            }else{
-                call.respond(HttpStatusCode.BadRequest, UserResponse(success= true, data= "Error deleted"))
+            if (rowAffected == 1) {
+                call.respond(
+                    HttpStatusCode.OK,
+                    UserResponse(success = true, data = "values has been successfully deleted")
+                )
+            } else {
+                call.respond(HttpStatusCode.BadRequest, UserResponse(success = true, data = "Error deleted"))
             }
         }
     }
