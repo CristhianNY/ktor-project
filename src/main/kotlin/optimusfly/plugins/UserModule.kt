@@ -1,7 +1,11 @@
 package optimusfly.plugins
 
+import com.typesafe.config.ConfigFactory
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.config.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -11,6 +15,7 @@ import optimusfly.domain.model.user.UserCredentials
 import optimusfly.domain.model.user.UserModel
 import optimusfly.domain.model.user.UserRequest
 import optimusfly.domain.model.user.UserResponse
+import optimusfly.utils.TokenManager
 import org.ktorm.dsl.*
 import org.mindrot.jbcrypt.BCrypt
 
@@ -18,6 +23,7 @@ const val SUCCESS_INSERT = 1
 fun Application.userModule() {
 
     val db = DatabaseConnection.database
+    val tokenManager = TokenManager(HoconApplicationConfig(ConfigFactory.load()))
     routing {
 
         get("/users") {
@@ -124,26 +130,46 @@ fun Application.userModule() {
             val userCredential = call.receive<UserCredentials>()
 
             val email = userCredential.email.toString()
-            val password = userCredential.hashedPassword()
+            val password = userCredential.password
 
             val user = db.from(UserEntity).select().where {
                 UserEntity.email eq email
             }.map {
                 val id = it[UserEntity.id]
                 val email = it[UserEntity.email]!!
+                val password = it[UserEntity.password]!!
                 optimusfly.bff.model.UserModel(id, email, password)
             }.firstOrNull()
 
             if (user == null) {
-                call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = "Invalid email or password"))
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    UserResponse(success = false, data = "Invalid email or password")
+                )
                 return@post
             }
 
-            val doesPasswordMatch = BCrypt.checkpw(password, user.password.orEmpty())
+            val doesPasswordMatch = BCrypt.checkpw(password, user.password)
 
-            if(!doesPasswordMatch){
-                call.respond(HttpStatusCode.OK, UserResponse(success = true, data = "User successfully logged in."))
+            if (!doesPasswordMatch) {
+                call.respond(
+                    HttpStatusCode.Unauthorized,
+                    UserResponse(success = false, data = "Invalid email or password")
+                )
             }
+
+            val token = tokenManager.generateJWTToken(user)
+            call.respond(HttpStatusCode.OK, UserResponse(success = true, data = token))
+        }
+
+        authenticate {
+            get("/me") {
+                val principal = call.principal<JWTPrincipal>()
+                val email = principal!!.payload.getClaim("email").asString()
+                val userId = principal!!.payload.getClaim("userId").asInt()
+                call.respondText("Hola , $email con id $userId")
+            }
+
         }
     }
 }
