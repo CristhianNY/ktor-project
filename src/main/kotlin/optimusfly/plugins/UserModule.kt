@@ -26,20 +26,23 @@ fun Application.userModule() {
     val tokenManager = TokenManager(HoconApplicationConfig(ConfigFactory.load()))
     routing {
 
-        get("/users") {
-            val users = db.from(UserEntity).select().map {
-                val id = it[UserEntity.id]
-                val name = it[UserEntity.name]
-                val lasName = it[UserEntity.lastName]
-                val email = it[UserEntity.email]
-                val password = it[UserEntity.password]
+        authenticate {
+            get("/users") {
+                val users = db.from(UserEntity).select().map {
+                    val id = it[UserEntity.id]
+                    val name = it[UserEntity.name]
+                    val lasName = it[UserEntity.lastName]
+                    val email = it[UserEntity.email]
+                    val password = it[UserEntity.password]
 
-                UserModel(id, name, lasName, email, password)
+                    UserModel(id, name, lasName, email, password)
+
+                }
+                call.respond(users)
 
             }
-            call.respond(users)
-
         }
+
         get("/get-user-information") {
             call.respondText("Mostrar user information")
         }
