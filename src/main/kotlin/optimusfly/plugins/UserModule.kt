@@ -7,10 +7,12 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import optimusfly.data.db.DatabaseConnection
 import optimusfly.data.user.UserEntity
+import optimusfly.domain.model.user.UserCredentials
 import optimusfly.domain.model.user.UserModel
 import optimusfly.domain.model.user.UserRequest
 import optimusfly.domain.model.user.UserResponse
 import org.ktorm.dsl.*
+import org.mindrot.jbcrypt.BCrypt
 
 const val SUCCESS_INSERT = 1
 fun Application.userModule() {
@@ -41,10 +43,6 @@ fun Application.userModule() {
             call.respondText("The User Id: $userId")
         }
 
-        post("/login") {
-            val user = call.receive<UserModel>()
-        }
-
         post("register-user") {
             val request = call.receive<UserRequest>()
 
@@ -60,8 +58,9 @@ fun Application.userModule() {
             if (user != null) {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    UserResponse(success = true, data = "User already exists, please try with another email"))
-                    return@post
+                    UserResponse(success = true, data = "User already exists, please try with another email")
+                )
+                return@post
             }
 
             val result = db.insert(UserEntity) {
@@ -118,6 +117,32 @@ fun Application.userModule() {
                 )
             } else {
                 call.respond(HttpStatusCode.BadRequest, UserResponse(success = true, data = "Error deleted"))
+            }
+        }
+
+        post("/login") {
+            val userCredential = call.receive<UserCredentials>()
+
+            val email = userCredential.email.toString()
+            val password = userCredential.hashedPassword()
+
+            val user = db.from(UserEntity).select().where {
+                UserEntity.email eq email
+            }.map {
+                val id = it[UserEntity.id]
+                val email = it[UserEntity.email]!!
+                optimusfly.bff.model.UserModel(id, email, password)
+            }.firstOrNull()
+
+            if (user == null) {
+                call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = "Invalid email or password"))
+                return@post
+            }
+
+            val doesPasswordMatch = BCrypt.checkpw(password, user.password.orEmpty())
+
+            if(!doesPasswordMatch){
+                call.respond(HttpStatusCode.OK, UserResponse(success = true, data = "User successfully logged in."))
             }
         }
     }

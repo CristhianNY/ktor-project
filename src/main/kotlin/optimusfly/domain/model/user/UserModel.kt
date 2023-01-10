@@ -1,7 +1,6 @@
 package optimusfly.domain.model.user
 
 import kotlinx.serialization.Serializable
-import org.mindrot.jbcrypt.BCrypt
 
 @Serializable
 data class UserModel(
