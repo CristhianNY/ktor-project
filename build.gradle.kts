@@ -7,6 +7,7 @@ plugins {
     kotlin("jvm") version "1.8.0"
     id("io.ktor.plugin") version "2.2.1"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.8.0"
+    id ("com.heroku.sdk.heroku-gradle") version "2.0.0"
 }
 
 group = "optimusfly"
