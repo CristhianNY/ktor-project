@@ -1,1 +1,1 @@
-web: npm run start
+web: build/install/sermons/bin/sermons
