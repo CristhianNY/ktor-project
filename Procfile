@@ -1,1 +1,1 @@
-web: ./build/install/sermons/bin/sermons
+web: build/install/sermons/bin/sermons
