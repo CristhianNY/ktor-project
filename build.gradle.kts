@@ -43,5 +43,8 @@ dependencies {
     implementation("org.mindrot:jbcrypt:0.3m")
     implementation("io.ktor:ktor-server-auth:$ktor_version")
     implementation("io.ktor:ktor-server-auth-jwt:$ktor_version")
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-json:$ktor_version")
+
 
 }

@@ -10,6 +10,7 @@ import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.plugins.contentnegotiation.*
 import optimusfly.plugins.configureRouting
+import optimusfly.plugins.gpt3Module
 import optimusfly.plugins.userModule
 import optimusfly.utils.TokenManager
 
@@ -23,10 +24,9 @@ fun Application.module() {
     install(ContentNegotiation) {
         json()
     }
-
     configureRouting()
     userModule()
-
+    gpt3Module()
 }
 
 
