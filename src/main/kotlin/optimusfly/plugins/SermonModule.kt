@@ -3,6 +3,7 @@ package optimusfly.plugins
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -19,11 +20,14 @@ fun Application.sermonModule() {
     routing {
         authenticate {
             post("save-sermon") {
+
+                val principal = call.principal<JWTPrincipal>()
+                val userId = principal!!.payload.getClaim("userId").asInt()
+
                 val request = call.receive<SermonRequest>()
                 val result = db.insert(SermonEntity) {
-                    set(it.id, request.userId)
                     set(it.sermonContent, request.sermon)
-                    set(it.userId, request.userId)
+                    set(it.userId, userId)
                     set(it.categoryId, request.category)
                 }
 
