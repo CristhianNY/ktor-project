@@ -1,19 +1,13 @@
 package optimusfly.plugins
 
 import io.ktor.client.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.*
 import optimusfly.domain.model.gpt.GptRequest
-import optimusfly.domain.model.user.UserResponse
 
-@OptIn(InternalAPI::class)
 fun Application.gpt3Module() {
     routing {
         authenticate {
@@ -28,6 +22,4 @@ fun Application.gpt3Module() {
             }
         }
     }
-
-
 }
