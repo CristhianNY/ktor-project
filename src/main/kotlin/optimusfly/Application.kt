@@ -26,7 +26,7 @@ fun Application.module() {
     }
     configureRouting()
     userModule()
-   // sermonModule()
+    sermonModule()
 }
 
 
