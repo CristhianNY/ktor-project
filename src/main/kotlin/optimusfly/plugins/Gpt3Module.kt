@@ -1,6 +1,9 @@
 package optimusfly.plugins
 
 import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -14,6 +17,9 @@ fun Application.gpt3Module() {
             post("get-sermons") {
                 val request = call.receive<GptRequest>()
                //  val client = HttpClient()
+                val response: HttpResponse = HttpClient().request("https://ktor.io/") {
+                    method = HttpMethod.Get
+                }
                 // Establecer la URL de la API de GPT-3 y la clave de API
                 val apiUrl = "https://api.openai.com/v1/completions"
                 val apiKey = "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"
