@@ -3,8 +3,8 @@ package optimusfly.domain.model.sermon
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SermonModule(
+data class SermonModel(
     val userId: Int?,
-    val userName: String?,
-    val sermon: String
+    val sermon: String,
+    val category: Int?
 )

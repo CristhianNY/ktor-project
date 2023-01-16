@@ -9,9 +9,15 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import optimusfly.data.db.DatabaseConnection
 import optimusfly.data.sermons.SermonEntity
+import optimusfly.data.user.UserEntity
+import optimusfly.domain.model.sermon.SermonModel
 import optimusfly.domain.model.sermon.SermonRequest
+import optimusfly.domain.model.user.UserModel
 import optimusfly.domain.model.user.UserResponse
+import org.ktorm.dsl.from
 import org.ktorm.dsl.insert
+import org.ktorm.dsl.map
+import org.ktorm.dsl.select
 
 const val SUCCESS_INSERT_SERMON = 1
 fun Application.sermonModule() {
@@ -39,8 +45,20 @@ fun Application.sermonModule() {
                     call.respond(
                         HttpStatusCode.BadRequest, UserResponse(success = true, data = "Error Inserting Sermon")
                     )
+                }
+            }
+
+
+            get("get-categories") {
+                val users = db.from(SermonEntity).select().map {
+                    val id = it[SermonEntity.id]
+                    val sermonContent = it[SermonEntity.sermonContent]
+                    val sermonCategory = it[SermonEntity.categoryId]
+
+                    SermonModel(id, sermonContent.orEmpty(), sermonCategory)
 
                 }
+                call.respond(users)
             }
         }
 
