@@ -50,7 +50,7 @@ fun Application.sermonModule() {
 
 
             get("get-categories") {
-                val users = db.from(SermonEntity).select().map {
+                val categories: List<SermonModel> = db.from(SermonEntity).select().map {
                     val id = it[SermonEntity.id]
                     val sermonContent = it[SermonEntity.sermonContent]
                     val sermonCategory = it[SermonEntity.categoryId]
@@ -58,7 +58,7 @@ fun Application.sermonModule() {
                     SermonModel(id, sermonContent.orEmpty(), sermonCategory)
 
                 }
-                call.respond(users)
+                call.respond(categories)
             }
         }
 
