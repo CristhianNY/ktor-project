@@ -13,7 +13,7 @@ fun Application.gpt3Module() {
         authenticate {
             post("get-sermons") {
                 val request = call.receive<GptRequest>()
-                val client = HttpClient()
+               //  val client = HttpClient()
                 // Establecer la URL de la API de GPT-3 y la clave de API
                 val apiUrl = "https://api.openai.com/v1/completions"
                 val apiKey = "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"
