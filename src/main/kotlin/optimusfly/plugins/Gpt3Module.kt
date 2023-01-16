@@ -23,12 +23,8 @@ fun Application.gpt3Module() {
                 // Establecer la URL de la API de GPT-3 y la clave de API
                 val apiUrl = "https://api.openai.com/v1/completions"
                 val apiKey = "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"
-                val response: HttpResponse = client.post(apiUrl) {
-                    header("Content-Type", "application/json")
-                    header("Authorization", "Bearer $apiKey")
-                    setBody(request)
-                }
-                call.respondText("Hola , ${response.content}")
+
+                call.respondText("Hola , $request")
             }
         }
     }
