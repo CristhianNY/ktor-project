@@ -10,6 +10,7 @@ import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.plugins.contentnegotiation.*
 import optimusfly.plugins.configureRouting
+import optimusfly.plugins.sermonModule
 import optimusfly.plugins.userModule
 import optimusfly.utils.TokenManager
 
@@ -25,6 +26,7 @@ fun Application.module() {
     }
     configureRouting()
     userModule()
+    sermonModule()
 }
 
 
