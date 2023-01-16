@@ -8,11 +8,10 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import optimusfly.data.db.DatabaseConnection
+import optimusfly.data.sermons.CategoryEntity
 import optimusfly.data.sermons.SermonEntity
-import optimusfly.data.user.UserEntity
-import optimusfly.domain.model.sermon.SermonModel
+import optimusfly.domain.model.sermon.CategoryModel
 import optimusfly.domain.model.sermon.SermonRequest
-import optimusfly.domain.model.user.UserModel
 import optimusfly.domain.model.user.UserResponse
 import org.ktorm.dsl.from
 import org.ktorm.dsl.insert
@@ -50,12 +49,11 @@ fun Application.sermonModule() {
 
 
             get("get-categories") {
-                val categories: List<SermonModel> = db.from(SermonEntity).select().map {
-                    val id = it[SermonEntity.id]
-                    val sermonContent = it[SermonEntity.sermonContent]
-                    val sermonCategory = it[SermonEntity.categoryId]
+                val categories: List<CategoryModel> = db.from(CategoryEntity).select().map {
+                    val id = it[CategoryEntity.id]
+                    val category = it[CategoryEntity.name]
 
-                    SermonModel(id, sermonContent.orEmpty(), sermonCategory)
+                    CategoryModel(id, category.orEmpty())
 
                 }
                 call.respond(categories)
