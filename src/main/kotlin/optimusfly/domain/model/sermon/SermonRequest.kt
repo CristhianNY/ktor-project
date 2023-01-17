@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SermonRequest(
-    val sermon: String,
-    val category: Int?
+    val category: Int?,
+    val sermon: String
 )
