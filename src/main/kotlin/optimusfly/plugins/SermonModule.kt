@@ -75,14 +75,29 @@ fun Application.sermonModule() {
                 val page = call.parameters["page"]?.toInt() ?: 1
                 val pageSize = call.parameters["pageSize"]?.toInt() ?: 10
                 val offset = (page - 1) * pageSize
-                val sermons: List<SermonModel> = db.from(SermonEntity).select().limit(pageSize, offset).map {
+                val sermons: List<SermonModel> = db.from(SermonEntity).select().map {
                     val id = it[SermonEntity.id]
                     val sermonContent = it[SermonEntity.sermonContent]
                     val categoryId = it[SermonEntity.categoryId]
                     SermonModel(id, sermonContent.orEmpty(), categoryId)
                 }
-                call.respond(sermons)
+                val paginatedSermons = sermons.slice((page - 1) * pageSize until page * pageSize)
+                call.respond(paginatedSermons)
             }
+
+            get("get-all-sermons") {
+                val page = call.request.queryParameters["page"]?.toInt() ?: 1
+                val pageSize = call.request.queryParameters["pageSize"]?.toInt() ?: 10
+                val sermons: List<SermonModel> = db.from(SermonEntity).select().map {
+                    val id = it[SermonEntity.id]
+                    val sermonContent = it[SermonEntity.sermonContent]
+                    val categoryId = it[SermonEntity.categoryId]
+                    SermonModel(id, sermonContent.orEmpty(), categoryId)
+                }
+                val paginatedSermons = sermons.slice((page - 1) * pageSize until page * pageSize)
+                call.respond(paginatedSermons)
+            }
+
 
             get("get-sermon-by-id") {
                 val principal = call.principal<JWTPrincipal>()
