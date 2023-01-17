@@ -10,14 +10,14 @@ import io.ktor.server.routing.*
 import optimusfly.data.db.DatabaseConnection
 import optimusfly.data.sermons.CategoryEntity
 import optimusfly.data.sermons.SermonEntity
+import optimusfly.data.sermons.SermonEntity.categoryId
+import optimusfly.data.sermons.SermonEntity.sermonContent
+import optimusfly.data.user.UserEntity
 import optimusfly.domain.model.sermon.CategoryModel
 import optimusfly.domain.model.sermon.SermonModel
 import optimusfly.domain.model.sermon.SermonRequest
 import optimusfly.domain.model.user.UserResponse
-import org.ktorm.dsl.from
-import org.ktorm.dsl.insert
-import org.ktorm.dsl.map
-import org.ktorm.dsl.select
+import org.ktorm.dsl.*
 
 const val SUCCESS_INSERT_SERMON = 1
 fun Application.sermonModule() {
@@ -60,7 +60,7 @@ fun Application.sermonModule() {
             }
 
             get("get-all-sermons") {
-                val categories: List<SermonModel> = db.from(SermonEntity).select().map {
+                val sermons: List<SermonModel> = db.from(SermonEntity).select().map {
                     val id = it[SermonEntity.id]
                     val sermonContent = it[SermonEntity.sermonContent]
                     val categoryId = it[SermonEntity.categoryId]
@@ -68,9 +68,26 @@ fun Application.sermonModule() {
                     SermonModel(id, sermonContent.orEmpty(), categoryId)
 
                 }
-                call.respond(categories)
+                call.respond(sermons)
             }
-        }
 
+            get("get-sermon-by-id") {
+                val principal = call.principal<JWTPrincipal>()
+                val userId = principal!!.payload.getClaim("userId").asInt()
+
+                val sermon: List<SermonModel> =
+                    db.from(SermonEntity).select().where { SermonEntity.userId eq userId }.map {
+                        val id = it[SermonEntity.id]
+                        val sermonContent = it[SermonEntity.sermonContent]
+                        val categoryId = it[SermonEntity.categoryId]
+
+                        SermonModel(id, sermonContent.orEmpty(), categoryId)
+
+                    }
+
+                call.respond(sermon)
+            }
+
+        }
     }
 }
