@@ -11,6 +11,7 @@ import optimusfly.data.db.DatabaseConnection
 import optimusfly.data.sermons.CategoryEntity
 import optimusfly.data.sermons.SermonEntity
 import optimusfly.domain.model.sermon.CategoryModel
+import optimusfly.domain.model.sermon.SermonModel
 import optimusfly.domain.model.sermon.SermonRequest
 import optimusfly.domain.model.user.UserResponse
 import org.ktorm.dsl.from
@@ -47,13 +48,24 @@ fun Application.sermonModule() {
                 }
             }
 
-
             get("get-categories") {
                 val categories: List<CategoryModel> = db.from(CategoryEntity).select().map {
                     val id = it[CategoryEntity.id]
                     val category = it[CategoryEntity.name]
 
                     CategoryModel(id, category.orEmpty())
+
+                }
+                call.respond(categories)
+            }
+
+            get("get-all-sermons") {
+                val categories: List<SermonModel> = db.from(SermonEntity).select().map {
+                    val id = it[SermonEntity.id]
+                    val sermonContent = it[SermonEntity.sermonContent]
+                    val categoryId = it[SermonEntity.categoryId]
+
+                    SermonModel(id, sermonContent.orEmpty(), categoryId)
 
                 }
                 call.respond(categories)
