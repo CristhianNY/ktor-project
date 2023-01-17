@@ -71,6 +71,19 @@ fun Application.sermonModule() {
                 call.respond(sermons)
             }
 
+            get("get-page-sermons/{page}/{pageSize}") {
+                val page = call.parameters["page"]?.toInt() ?: 1
+                val pageSize = call.parameters["pageSize"]?.toInt() ?: 10
+                val offset = (page - 1) * pageSize
+                val sermons: List<SermonModel> = db.from(SermonEntity).select().limit(pageSize, offset).map {
+                    val id = it[SermonEntity.id]
+                    val sermonContent = it[SermonEntity.sermonContent]
+                    val categoryId = it[SermonEntity.categoryId]
+                    SermonModel(id, sermonContent.orEmpty(), categoryId)
+                }
+                call.respond(sermons)
+            }
+
             get("get-sermon-by-id") {
                 val principal = call.principal<JWTPrincipal>()
                 val userId = principal!!.payload.getClaim("userId").asInt()
