@@ -10,13 +10,11 @@ import io.ktor.server.routing.*
 import optimusfly.data.db.DatabaseConnection
 import optimusfly.data.sermons.CategoryEntity
 import optimusfly.data.sermons.SermonEntity
-import optimusfly.data.sermons.SermonEntity.categoryId
-import optimusfly.data.sermons.SermonEntity.sermonContent
-import optimusfly.data.user.UserEntity
 import optimusfly.domain.model.sermon.CategoryModel
 import optimusfly.domain.model.sermon.SermonModel
 import optimusfly.domain.model.sermon.SermonRequest
 import optimusfly.domain.model.user.UserResponse
+import org.ktorm.database.Database
 import org.ktorm.dsl.*
 
 const val SUCCESS_INSERT_SERMON = 1
@@ -65,7 +63,7 @@ fun Application.sermonModule() {
                     val sermonContent = it[SermonEntity.sermonContent]
                     val categoryId = it[SermonEntity.categoryId]
 
-                    SermonModel(id, sermonContent.orEmpty(), categoryId)
+                    SermonModel(id, sermonContent.orEmpty(), categoryId.getCategory(db))
 
                 }
                 call.respond(sermons)
@@ -74,13 +72,14 @@ fun Application.sermonModule() {
             get("get-page-sermons/{page}/{pageSize}") {
                 val page = call.parameters["page"]?.toInt() ?: 1
                 val pageSize = call.parameters["pageSize"]?.toInt() ?: 10
-                val offset = (page - 1) * pageSize
                 val sermons: List<SermonModel> = db.from(SermonEntity).select().map {
                     val id = it[SermonEntity.id]
                     val sermonContent = it[SermonEntity.sermonContent]
                     val categoryId = it[SermonEntity.categoryId]
-                    SermonModel(id, sermonContent.orEmpty(), categoryId)
+
+                    SermonModel(id, sermonContent.orEmpty(), categoryId.getCategory(db))
                 }
+
                 val paginatedSermons = sermons.slice((page - 1) * pageSize until page * pageSize)
                 call.respond(paginatedSermons)
             }
@@ -92,7 +91,7 @@ fun Application.sermonModule() {
                     val id = it[SermonEntity.id]
                     val sermonContent = it[SermonEntity.sermonContent]
                     val categoryId = it[SermonEntity.categoryId]
-                    SermonModel(id, sermonContent.orEmpty(), categoryId)
+                    SermonModel(id, sermonContent.orEmpty(), categoryId.getCategory(db))
                 }
                 val paginatedSermons = sermons.slice((page - 1) * pageSize until page * pageSize)
                 call.respond(paginatedSermons)
@@ -109,7 +108,7 @@ fun Application.sermonModule() {
                         val sermonContent = it[SermonEntity.sermonContent]
                         val categoryId = it[SermonEntity.categoryId]
 
-                        SermonModel(id, sermonContent.orEmpty(), categoryId)
+                        SermonModel(id, sermonContent.orEmpty(), categoryId.getCategory(db))
 
                     }
 
@@ -118,4 +117,12 @@ fun Application.sermonModule() {
 
         }
     }
+}
+
+private fun Int?.getCategory(db: Database): String? {
+    val id: Int = this ?: 1
+    return db.from(CategoryEntity).select().where { CategoryEntity.id eq id }.map {
+        val category = it[CategoryEntity.name]
+        category
+    }.firstOrNull()
 }

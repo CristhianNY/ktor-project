@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class SermonModel(
     val userId: Int?,
     val sermon: String,
-    val category: Int?
+    val category: String?
 )
