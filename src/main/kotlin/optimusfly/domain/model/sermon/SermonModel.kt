@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SermonModel(
-    val userId: Int?,
+    val sermonId: Int?,
     val sermon: String,
     val category: String?
 )
