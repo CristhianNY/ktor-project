@@ -16,6 +16,7 @@ import optimusfly.domain.model.sermon.SermonRequest
 import optimusfly.domain.model.user.UserResponse
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
+import kotlin.math.min
 
 const val SUCCESS_INSERT_SERMON = 1
 fun Application.sermonModule() {
@@ -80,7 +81,8 @@ fun Application.sermonModule() {
                     SermonModel(id, sermonContent.orEmpty(), categoryId.getCategory(db))
                 }
 
-                val paginatedSermons = sermons.slice((page - 1) * pageSize until page * pageSize)
+                val lastIndex = min(sermons.size, page * pageSize)
+                val paginatedSermons = if (lastIndex > (page - 1) * pageSize) sermons.slice((page - 1) * pageSize until lastIndex) else emptyList()
                 call.respond(paginatedSermons)
             }
 
