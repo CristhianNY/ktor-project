@@ -42,9 +42,6 @@ fun main() {
 }
 
 fun Application.module() {
-    install(ContentNegotiation) {
-        json()
-    }
     configureRouting()
     userModule()
     sermonModule()
