@@ -11,14 +11,12 @@ class TokenManager(config: HoconApplicationConfig) {
     private val audience = config.property("audience").getString()
     private val secret = config.property("secret").getString()
     private val issuer = config.property("issuer").getString()
-    private val expirationDate = System.currentTimeMillis() + 600000
 
     fun generateJWTToken(user: UserModel): String {
         val token = JWT.create().withAudience(audience)
             .withIssuer(issuer)
             .withClaim("email", user.email)
             .withClaim("userId", user.id)
-            .withExpiresAt(Date(expirationDate))
             .sign(Algorithm.HMAC256(secret))
 
         return token
