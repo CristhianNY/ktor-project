@@ -7,7 +7,7 @@ import io.ktor.server.config.*
 import optimusfly.bff.model.UserModel
 import java.util.*
 
-class TokenManager(val config: HoconApplicationConfig) {
+class TokenManager(config: HoconApplicationConfig) {
     private val audience = config.property("audience").getString()
     private val secret = config.property("secret").getString()
     private val issuer = config.property("issuer").getString()

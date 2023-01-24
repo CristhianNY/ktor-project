@@ -15,12 +15,33 @@ import optimusfly.plugins.userModule
 import optimusfly.utils.TokenManager
 
 fun main() {
-    embeddedServer(CIO, port = System.getenv("PORT").toInt(), host = "0.0.0.0", module = Application::module)
-        .start(wait = true)
+    embeddedServer(CIO, port = System.getenv("PORT").toInt(), host = "0.0.0.0") {
+        val config = HoconApplicationConfig(ConfigFactory.load())
+        val tokenManager = TokenManager(config)
+        install(Authentication) {
+            jwt {
+                verifier(tokenManager.verifyJWTToken())
+                realm = config.property("realm").getString()
+                validate { jwtCredential ->
+                    if (jwtCredential.payload.getClaim("email").asString().isNotEmpty()) {
+                        JWTPrincipal(jwtCredential.payload)
+                    } else {
+                        null
+                    }
+                }
+            }
+        }
+
+        install(ContentNegotiation) {
+            json()
+        }
+
+        module()
+
+    }.start(wait = true)
 }
 
 fun Application.module() {
-    setUpJWTAuthentication(this)
     install(ContentNegotiation) {
         json()
     }
@@ -29,21 +50,3 @@ fun Application.module() {
     sermonModule()
 }
 
-
-fun setUpJWTAuthentication(application: Application) {
-    val config = HoconApplicationConfig(ConfigFactory.load())
-    val tokenManager = TokenManager(config)
-    application.install(Authentication) {
-        jwt {
-            verifier(tokenManager.verifyJWTToken())
-            realm = config.property("realm").getString()
-            validate { jwtCredential ->
-                if (jwtCredential.payload.getClaim("email").asString().isNotEmpty()) {
-                    JWTPrincipal(jwtCredential.payload)
-                } else {
-                    null
-                }
-            }
-        }
-    }
-}
