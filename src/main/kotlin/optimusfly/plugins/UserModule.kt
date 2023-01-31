@@ -63,7 +63,7 @@ fun Application.userModule() {
             call.respondText((response.body!!.string()))
         }
 
-        post("/get-gpt-response-from-gpt/") {
+        post("/get-gpt-response-from-gpt") {
             val openai = OpenAI(apiKey = "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")
             val request = call.receive<DialogFlowRequestModel>()
 
