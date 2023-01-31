@@ -1,5 +1,6 @@
 package optimusfly.plugins
 
+import com.google.gson.Gson
 import com.squareup.moshi.Moshi
 import com.typesafe.config.ConfigFactory
 import io.ktor.http.*
@@ -74,9 +75,9 @@ fun Application.userModule() {
 
             if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
 
-            val moshi = Moshi.Builder().build()
-            val adapter = moshi.adapter(GptResponseModel::class.java)
-            val gptResponse: GptResponseModel? = adapter.fromJson(response.body!!.string())
+            val gson = Gson()
+            val gptResponse = gson.fromJson(response.body!!.string(), GptResponseModel::class.java)
+
 
             call.respond( HttpStatusCode.OK, gptResponse!!.toDialogFlowResponseModel())
         }
