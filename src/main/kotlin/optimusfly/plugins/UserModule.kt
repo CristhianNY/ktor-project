@@ -55,7 +55,7 @@ fun Application.userModule() {
 
             if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
-            println(response.body!!.string())
+            call.respondText((response.body!!.string()))
         }
 
         get("/get-user-information") {
