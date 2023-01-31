@@ -45,7 +45,7 @@ fun Application.userModule() {
             }
         }
 
-        get("get-gpt-response/{text}/") {
+        get("/get-gpt-response/{text}/") {
             val openai = OpenAI(apiKey = "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")
             val textPrompt = call.request.queryParameters["text"].orEmpty()
 
