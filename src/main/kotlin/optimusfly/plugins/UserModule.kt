@@ -1,5 +1,6 @@
 package optimusfly.plugins
 
+import com.squareup.moshi.Moshi
 import com.typesafe.config.ConfigFactory
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -12,6 +13,9 @@ import io.ktor.server.routing.*
 import optimusfly.data.db.DatabaseConnection
 import optimusfly.data.openai.OpenAI
 import optimusfly.data.user.UserEntity
+import optimusfly.domain.model.gpt.DialogFlowRequestModel
+import optimusfly.domain.model.gpt.openai.GptResponseModel
+import optimusfly.domain.model.gpt.openai.toDialogFlowResponseModel
 import optimusfly.domain.model.user.UserCredentials
 import optimusfly.domain.model.user.UserModel
 import optimusfly.domain.model.user.UserRequest
@@ -51,11 +55,30 @@ fun Application.userModule() {
 
             val response = openai.completion(
                 prompt = textPrompt,
-                maxTokens = 2048)
+                maxTokens = 2048
+            )
 
             if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
 
             call.respondText((response.body!!.string()))
+        }
+
+        post("/get-gpt-response-from-gpt/") {
+            val openai = OpenAI(apiKey = "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")
+            val request = call.receive<DialogFlowRequestModel>()
+
+            val response = openai.completion(
+                prompt = request.queryResult.queryText,
+                maxTokens = 2048
+            )
+
+            if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
+
+            val moshi = Moshi.Builder().build()
+            val adapter = moshi.adapter(GptResponseModel::class.java)
+            val gptResponse: GptResponseModel? = adapter.fromJson(response.body!!.string())
+
+            call.respond( HttpStatusCode.OK, gptResponse!!.toDialogFlowResponseModel())
         }
 
         get("/get-user-information") {

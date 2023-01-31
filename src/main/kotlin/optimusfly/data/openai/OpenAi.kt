@@ -12,7 +12,7 @@ class OpenAI(apiKey: String) {
     fun completion(prompt: String, maxTokens: Int): Response {
 
         val mediaType = "application/json".toMediaTypeOrNull()
-        val body = "{\"model\":\"text-davinci-003\",\"prompt\":\"You: What have you been up to?\\nFriend: Watching old movies.\\nYou: Did you watch anything interesting?\\nFriend:\",\"temperature\":0.5,\"max_tokens\":60,\"top_p\":1.0,\"frequency_penalty\":0.5,\"presence_penalty\":0.0,\"stop\":[\"You:\"]}"
+        val body = "{\"model\":\"text-davinci-003\",\"$prompt\":\"You: What have you been up to?\\nFriend: Watching old movies.\\nYou: Did you watch anything interesting?\\nFriend:\",\"temperature\":0.5,\"max_tokens\":$maxTokens,\"top_p\":1.0,\"frequency_penalty\":0.5,\"presence_penalty\":0.0,\"stop\":[\"You:\"]}"
         val request = Request.Builder()
             .url("https://api.openai.com/v1/completions")
             .post(RequestBody.create(mediaType, body))
