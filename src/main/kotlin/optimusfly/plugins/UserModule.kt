@@ -10,6 +10,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import optimusfly.data.db.DatabaseConnection
+import optimusfly.data.openai.OpenAI
 import optimusfly.data.user.UserEntity
 import optimusfly.domain.model.user.UserCredentials
 import optimusfly.domain.model.user.UserModel
@@ -18,6 +19,7 @@ import optimusfly.domain.model.user.UserResponse
 import optimusfly.utils.TokenManager
 import org.ktorm.dsl.*
 import org.mindrot.jbcrypt.BCrypt
+import java.io.IOException
 
 const val SUCCESS_INSERT = 1
 fun Application.userModule() {
@@ -41,6 +43,19 @@ fun Application.userModule() {
                 call.respond(users)
 
             }
+        }
+
+        get("get-gpt-response/{text}/") {
+            val openai = OpenAI(apiKey = "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")
+            val textPrompt = call.request.queryParameters["text"].orEmpty()
+
+            val response = openai.completion(
+                prompt = textPrompt,
+                maxTokens = 2048)
+
+            if (!response.isSuccessful) throw IOException("Unexpected code $response")
+
+            println(response.body!!.string())
         }
 
         get("/get-user-information") {

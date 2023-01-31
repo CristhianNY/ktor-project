@@ -8,7 +8,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import optimusfly.data.db.DatabaseConnection
-import optimusfly.data.openai.OpenAI
 import optimusfly.data.sermons.CategoryEntity
 import optimusfly.data.sermons.SermonEntity
 import optimusfly.domain.model.sermon.CategoryModel
@@ -17,7 +16,6 @@ import optimusfly.domain.model.sermon.SermonRequest
 import optimusfly.domain.model.user.UserResponse
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
-import java.io.IOException
 import kotlin.math.min
 
 const val SUCCESS_INSERT_SERMON = 1
@@ -120,20 +118,6 @@ fun Application.sermonModule() {
                 call.respond(sermon)
             }
 
-        }
-
-
-        get("get-gpt-response/{text}/") {
-            val openai = OpenAI(apiKey = "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")
-            val textPrompt = call.request.queryParameters["text"].orEmpty()
-
-            val response = openai.completion(
-                prompt = textPrompt,
-                maxTokens = 2048)
-
-            if (!response.isSuccessful) throw IOException("Unexpected code $response")
-
-            println(response.body!!.string())
         }
 
     }
