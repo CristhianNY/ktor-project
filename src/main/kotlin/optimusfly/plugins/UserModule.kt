@@ -13,7 +13,7 @@ import io.ktor.server.routing.*
 import optimusfly.data.db.DatabaseConnection
 import optimusfly.data.openai.OpenAI
 import optimusfly.data.user.UserEntity
-import optimusfly.domain.model.gpt.DialogFlowRequestModel
+import optimusfly.domain.model.dialogFlowRequest.DialogFlowRequestModel
 import optimusfly.domain.model.gpt.openai.GptResponseModel
 import optimusfly.domain.model.gpt.openai.toDialogFlowResponseModel
 import optimusfly.domain.model.user.UserCredentials

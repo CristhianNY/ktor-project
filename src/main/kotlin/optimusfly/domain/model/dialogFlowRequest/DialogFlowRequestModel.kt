@@ -1,4 +1,4 @@
-package optimusfly.domain.model.gpt
+package optimusfly.domain.model.dialogFlowRequest
 
 import kotlinx.serialization.Serializable
 
