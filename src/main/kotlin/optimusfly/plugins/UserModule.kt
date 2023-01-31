@@ -53,7 +53,7 @@ fun Application.userModule() {
                 prompt = textPrompt,
                 maxTokens = 2048)
 
-            if (!response.isSuccessful) throw IOException("Unexpected code $response")
+            if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
 
             call.respondText((response.body!!.string()))
         }
