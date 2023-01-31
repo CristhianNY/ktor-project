@@ -68,7 +68,7 @@ fun Application.userModule() {
             val request = call.receive<DialogFlowRequestModel>()
 
             val response = openai.completion(
-                prompt = "Hola",
+                prompt = request.queryResult.queryText,
                 maxTokens = 2048
             )
 
