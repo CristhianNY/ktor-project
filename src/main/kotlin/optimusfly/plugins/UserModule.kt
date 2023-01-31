@@ -1,7 +1,6 @@
 package optimusfly.plugins
 
 import com.google.gson.Gson
-import com.squareup.moshi.Moshi
 import com.typesafe.config.ConfigFactory
 import io.ktor.http.*
 import io.ktor.server.application.*
