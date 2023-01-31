@@ -25,7 +25,7 @@ class OpenAI(apiKey: String) {
         val request = Request.Builder()
             .url("https://api.openai.com/v1/engines/curie/completions")
             .post(
-                requestBody.trimIndent().toRequestBody("application/json".toMediaType())
+                requestBody.toRequestBody("application/json".toMediaType())
             )
             .addHeader("Authorization", "Bearer $apiKey")
             .build()
