@@ -16,7 +16,6 @@ import optimusfly.data.user.UserEntity
 import optimusfly.domain.model.dialogFlowRequest.DialogFlowRequestModel
 import optimusfly.domain.model.gpt.openai.GptResponseModel
 import optimusfly.domain.model.gpt.openai.toDialogFlowResponseCXModel
-import optimusfly.domain.model.gpt.openai.toDialogFlowResponseModel
 import optimusfly.domain.model.user.UserCredentials
 import optimusfly.domain.model.user.UserModel
 import optimusfly.domain.model.user.UserRequest
