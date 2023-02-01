@@ -13,7 +13,7 @@ import io.ktor.server.routing.*
 import optimusfly.data.db.DatabaseConnection
 import optimusfly.data.openai.OpenAI
 import optimusfly.data.user.UserEntity
-import optimusfly.domain.model.dialogFlowRequest.DialogFlowRequestModel
+import optimusfly.domain.model.dialogflowcx.request.DialogFlowCXRequestModel
 import optimusfly.domain.model.gpt.openai.GptResponseModel
 import optimusfly.domain.model.gpt.openai.toDialogFlowResponseCXModel
 import optimusfly.domain.model.user.UserCredentials
@@ -65,10 +65,10 @@ fun Application.userModule() {
 
         post("/get-gpt-response-from-gpt") {
             val openai = OpenAI(apiKey = "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")
-            val request = call.receive<DialogFlowRequestModel>()
+            val request = call.receive<DialogFlowCXRequestModel>()
 
             val response = openai.completion(
-                prompt = request.queryResult.queryText,
+                prompt = request.text,
                 maxTokens = 2048
             )
 

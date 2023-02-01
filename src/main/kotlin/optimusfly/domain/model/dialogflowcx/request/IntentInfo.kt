@@ -1,0 +1,10 @@
+package optimusfly.domain.model.dialogflowcx.request
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class IntentInfo(
+    val intentDetectionConfidence: Int,
+    val intentDisplayName: String,
+    val intentName: String
+)
