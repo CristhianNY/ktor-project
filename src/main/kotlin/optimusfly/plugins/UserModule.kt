@@ -65,7 +65,9 @@ fun Application.userModule() {
 
         post("/get-gpt-response-from-gpt") {
             val openai = OpenAI(apiKey = "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")
-            val request = call.receive<DialogCXRequestModel>()
+            val requestData = call.receiveText()
+            println("Request JSON: $requestData")
+           /** val request = call.receive<DialogCXRequestModel>()
 
             val response = openai.completion(
                 prompt = request.text,
@@ -78,7 +80,7 @@ fun Application.userModule() {
             val gptResponse = gson.fromJson(response.body!!.string(), GptResponseModel::class.java)
 
 
-            call.respond( HttpStatusCode.OK, gptResponse!!.toDialogFlowResponseCXModel())
+            call.respond( HttpStatusCode.OK, gptResponse!!.toDialogFlowResponseCXModel())**/
         }
 
         get("/get-user-information") {
