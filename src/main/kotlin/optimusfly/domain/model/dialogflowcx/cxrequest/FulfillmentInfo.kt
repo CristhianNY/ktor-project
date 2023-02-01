@@ -4,5 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class FulfillmentInfo(
-    val tag: String
+    val tag: String?
 )

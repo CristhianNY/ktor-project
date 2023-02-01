@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Text(
-    val redactedText: List<String>,
-    val text: List<String>
+    val redactedText: List<String?>?,
+    val text: List<String?>?
 )

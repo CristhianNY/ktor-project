@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class IntentInfo(
-    val confidence: Double,
-    val displayName: String,
-    val lastMatchedIntent: String
+    val confidence: Double?,
+    val displayName: String?,
+    val lastMatchedIntent: String?
 )

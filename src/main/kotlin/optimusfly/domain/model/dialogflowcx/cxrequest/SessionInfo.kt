@@ -4,5 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SessionInfo(
-    val session: String
+    val session: String?
 )

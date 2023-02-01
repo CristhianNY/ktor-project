@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PageInfo(
-    val currentPage: String,
-    val displayName: String
+    val currentPage: String?,
+    val displayName: String?
 )
