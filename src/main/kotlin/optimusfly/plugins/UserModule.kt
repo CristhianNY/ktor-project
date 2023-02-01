@@ -13,7 +13,7 @@ import io.ktor.server.routing.*
 import optimusfly.data.db.DatabaseConnection
 import optimusfly.data.openai.OpenAI
 import optimusfly.data.user.UserEntity
-import optimusfly.domain.model.dialogflowcx.request.DialogFlowCXRequestModel
+import optimusfly.domain.model.dialogflowcx.cxrequest.DialogCXRequestModel
 import optimusfly.domain.model.gpt.openai.GptResponseModel
 import optimusfly.domain.model.gpt.openai.toDialogFlowResponseCXModel
 import optimusfly.domain.model.user.UserCredentials
@@ -67,7 +67,7 @@ fun Application.userModule() {
             val openai = OpenAI(apiKey = "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")
             val requestData = call.receiveText()
             println("Request JSON: $requestData")
-            val request = call.receive<DialogFlowCXRequestModel>()
+            val request = call.receive<DialogCXRequestModel>()
 
             val response = openai.completion(
                 prompt = request.text,
