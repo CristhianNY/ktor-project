@@ -26,6 +26,7 @@ import org.ktorm.dsl.*
 import org.mindrot.jbcrypt.BCrypt
 import java.io.IOException
 
+
 const val SUCCESS_INSERT = 1
 fun Application.userModule() {
 
@@ -85,11 +86,12 @@ fun Application.userModule() {
 
         post("/get-gpt-response-from-gpt-not-intent") {
             val openai = OpenAI(apiKey = "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")
+            val gson2 = Gson()
+            val request2 = gson2.fromJson(call.receiveText(), CxRequestV3Model::class.java)
 
-            val request = call.receive<CxRequestV3Model>()
 
             val response = openai.completion(
-                prompt = request.text.orEmpty(),
+                prompt = request2.text.orEmpty(),
                 maxTokens = 2048
             )
 
