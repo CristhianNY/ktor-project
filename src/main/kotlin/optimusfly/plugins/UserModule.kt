@@ -83,6 +83,25 @@ fun Application.userModule() {
             call.respond( HttpStatusCode.OK, gptResponse!!.toDialogFlowResponseCXModel())
         }
 
+        post("/get-gpt-response-from-gpt-not-intent") {
+            val openai = OpenAI(apiKey = "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")
+
+            val request = call.receive<CxRequest>()
+
+            val response = openai.completion(
+                prompt = request.text.orEmpty(),
+                maxTokens = 2048
+            )
+
+            if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
+
+            val gson = Gson()
+            val gptResponse = gson.fromJson(response.body!!.string(), GptResponseModel::class.java)
+
+
+            call.respond( HttpStatusCode.OK, gptResponse!!.toDialogFlowResponseCXModel())
+        }
+
         get("/get-user-information") {
             call.respondText("Mostrar user information")
         }
