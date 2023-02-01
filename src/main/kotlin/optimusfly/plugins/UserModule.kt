@@ -67,7 +67,7 @@ fun Application.userModule() {
         post("/get-gpt-response-from-gpt") {
             val openai = OpenAI(apiKey = "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")
 
-            val request = call.receive<CxRequest>()
+            val request = call.receive<DialogCXRequestModel>()
 
             val response = openai.completion(
                 prompt = request.text.orEmpty(),
