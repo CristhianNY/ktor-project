@@ -1,12 +1,21 @@
 package optimusfly.plugins
 
 import com.google.gson.Gson
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import optimusfly.data.whatsappApi.WhatsAppApi
 import optimusfly.domain.model.dialogflowcx.cxrequestv3.CxRequestV3Model
+import optimusfly.domain.model.gpt.openai.GptResponseModel
+import optimusfly.domain.model.gpt.openai.toDialogFlowResponseCXModel
 import optimusfly.domain.model.whatsapp.WebHookPetitionModel
+import optimusfly.domain.model.whatsapp.send.Language
+import optimusfly.domain.model.whatsapp.send.MessageModel
+import optimusfly.domain.model.whatsapp.send.MessageResponseModel
+import optimusfly.domain.model.whatsapp.send.Template
+import java.io.IOException
 
 
 fun Application.whatsappModule() {
@@ -31,8 +40,31 @@ fun Application.whatsappModule() {
             val gson2 = Gson()
             val request2 = gson2.fromJson(call.receiveText(), WebHookPetitionModel::class.java)
 
-            call.respondText(request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.text?.body.orEmpty())
+            val mockMessage = MessageModel(
+                messaging_product = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.text?.body.orEmpty(),
+                to = "573157119388",
+                type = "template",
+                template = Template(
+                    name = "hello_world",
+                    language = Language(
+                        code = "en_US"
+                    )
+                )
+            )
+
+            val whatsAppApi =
+                WhatsAppApi("EAAMZBu7GdAScBAGS5fhE9BlxOZCUE71leopZCHXrlPZAURQZBpC4Lg2wRCfv8ipA9PLlusfTyVYjdgzqdrBHY4zO5CxZBqZADMg6Go90evMPNTkdYx0OCz1vs5XqTKxl7ZCrQwrfpdECoIw63k261jFieS0xci8reVtMEv8VoSoJYJpXvJ91Lk0yGQdlP7kEJMJ614voSMBF9varIYdKc6ZBa")
+            val response = whatsAppApi.sendMessage(
+                mockMessage
+            )
+            if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
+
+            val gson = Gson()
+            val messageResponse = gson.fromJson(response.body!!.string(), MessageResponseModel::class.java)
+
+            call.respond(HttpStatusCode.OK, messageResponse)
         }
+
 
     }
 }
