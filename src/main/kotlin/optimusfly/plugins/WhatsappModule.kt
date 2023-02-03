@@ -6,6 +6,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import optimusfly.data.whatsappApi.WhatsAppApi
 import optimusfly.domain.model.whatsapp.WebHookPetitionModel
@@ -54,7 +55,7 @@ fun Application.whatsappModule() {
             val whatsAppApi =
                 WhatsAppApi("EAAMZBu7GdAScBAGS5fhE9BlxOZCUE71leopZCHXrlPZAURQZBpC4Lg2wRCfv8ipA9PLlusfTyVYjdgzqdrBHY4zO5CxZBqZADMg6Go90evMPNTkdYx0OCz1vs5XqTKxl7ZCrQwrfpdECoIw63k261jFieS0xci8reVtMEv8VoSoJYJpXvJ91Lk0yGQdlP7kEJMJ614voSMBF9varIYdKc6ZBa")
 
-            launch {
+            launch(Dispatchers.IO) {
                 val response = whatsAppApi.sendMessage(
                     mockMessage
                 )
