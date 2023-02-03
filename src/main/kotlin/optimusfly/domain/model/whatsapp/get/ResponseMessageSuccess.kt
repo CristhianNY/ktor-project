@@ -4,6 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ResponseMessageSuccess(
-    val data: String,
-    val success: Boolean
+    val status: String
 )
