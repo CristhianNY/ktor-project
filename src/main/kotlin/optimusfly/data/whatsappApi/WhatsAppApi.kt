@@ -10,7 +10,7 @@ import optimusfly.domain.model.whatsapp.send.MessageModel
 class WhatsAppApi(val bearerToken: String) {
     private val client = OkHttpClient()
 
-   suspend fun sendMessage(message: MessageModel): Response {
+   fun sendMessage(message: MessageModel): Response {
 
         val mediaType = "application/json".toMediaTypeOrNull()
         val body = """
