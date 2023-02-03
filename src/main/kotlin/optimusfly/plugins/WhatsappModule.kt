@@ -1,8 +1,12 @@
 package optimusfly.plugins
 
+import com.google.gson.Gson
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import optimusfly.domain.model.dialogflowcx.cxrequestv3.CxRequestV3Model
+import optimusfly.domain.model.whatsapp.WebHookPetitionModel
 
 
 fun Application.whatsappModule() {
@@ -19,6 +23,13 @@ fun Application.whatsappModule() {
             if (hubVerifyToken != token) throw IllegalStateException("Invalid hub.verify_token")
 
             call.respondText(hubChallenge)
+        }
+
+        post("/webhooks") {
+            val gson2 = Gson()
+            val request2 = gson2.fromJson(call.receiveText(), WebHookPetitionModel::class.java)
+
+            call.respond(request2)
         }
 
     }
