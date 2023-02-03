@@ -15,8 +15,10 @@ fun Application.whatsappModule() {
         get("/webhooks") {
             val token = "chatCristhianBonillaGpt"
             val hubMode = call.parameters["hub.mode"] ?: throw IllegalStateException("hub.mode parameter is missing")
-            val hubChallenge = call.parameters["hub.challenge"] ?: throw IllegalStateException("hub.challenge parameter is missing")
-            val hubVerifyToken = call.parameters["hub.verify_token"] ?: throw IllegalStateException("hub.verify_token parameter is missing")
+            val hubChallenge =
+                call.parameters["hub.challenge"] ?: throw IllegalStateException("hub.challenge parameter is missing")
+            val hubVerifyToken = call.parameters["hub.verify_token"]
+                ?: throw IllegalStateException("hub.verify_token parameter is missing")
 
             if (hubMode != "subscribe") throw IllegalStateException("Invalid hub.mode")
 
@@ -29,7 +31,7 @@ fun Application.whatsappModule() {
             val gson2 = Gson()
             val request2 = gson2.fromJson(call.receiveText(), WebHookPetitionModel::class.java)
 
-            call.respond(request2)
+            call.respondText(request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.text?.body.orEmpty())
         }
 
     }
