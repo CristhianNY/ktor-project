@@ -61,10 +61,8 @@ fun Application.whatsappModule() {
             )
             if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
             }
-
-            val responseSuccess = ResponseMessageSuccess("success")
-
-            call.respond(HttpStatusCode.OK, responseSuccess)
+            
+            call.respond(HttpStatusCode.OK)
         }
 
 
