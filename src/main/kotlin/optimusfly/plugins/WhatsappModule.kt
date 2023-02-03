@@ -7,10 +7,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import optimusfly.data.whatsappApi.WhatsAppApi
-import optimusfly.domain.model.dialogflowcx.cxrequestv3.CxRequestV3Model
-import optimusfly.domain.model.gpt.openai.GptResponseModel
-import optimusfly.domain.model.gpt.openai.toDialogFlowResponseCXModel
 import optimusfly.domain.model.whatsapp.WebHookPetitionModel
+import optimusfly.domain.model.whatsapp.get.ResponseMessageSuccess
 import optimusfly.domain.model.whatsapp.send.Language
 import optimusfly.domain.model.whatsapp.send.MessageModel
 import optimusfly.domain.model.whatsapp.send.MessageResponseModel
@@ -59,10 +57,12 @@ fun Application.whatsappModule() {
             )
             if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
 
-            val gson = Gson()
-            val messageResponse = gson.fromJson(response.body!!.string(), MessageResponseModel::class.java)
+            val responseSuccess = ResponseMessageSuccess(
+                request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.text?.body.orEmpty(),
+                true
+            )
 
-            call.respond(HttpStatusCode.OK, messageResponse)
+            call.respond(HttpStatusCode.OK, responseSuccess)
         }
 
 
