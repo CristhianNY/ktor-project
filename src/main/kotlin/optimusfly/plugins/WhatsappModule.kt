@@ -40,6 +40,7 @@ fun Application.whatsappModule() {
             val gson2 = Gson()
             val request2 = gson2.fromJson(call.receiveText(), WebHookPetitionModel::class.java)
 
+            println("este es:"+request2)
             val mockMessage = MessageModel(
                 messaging_product = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.text?.body.orEmpty(),
                 to = "573157119388",
