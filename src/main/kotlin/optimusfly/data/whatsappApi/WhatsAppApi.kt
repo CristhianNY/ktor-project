@@ -7,7 +7,7 @@ import okhttp3.RequestBody
 import okhttp3.Response
 import optimusfly.domain.model.whatsapp.send.MessageModel
 
-class WhatsAppApi(bearerToken: String) {
+class WhatsAppApi(val bearerToken: String) {
     private val client = OkHttpClient()
 
     fun sendMessage(message: MessageModel): Response {
@@ -30,7 +30,7 @@ class WhatsAppApi(bearerToken: String) {
             .url("https://graph.facebook.com/v15.0/116126038051629/messages")
             .post(RequestBody.create(mediaType, body))
             .addHeader("Content-Type", "application/json")
-            .addHeader("Authorization", "Bearer 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")
+            .addHeader("Authorization", "Bearer $bearerToken")
             .build()
 
 
