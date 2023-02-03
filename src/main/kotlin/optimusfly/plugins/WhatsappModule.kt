@@ -9,7 +9,6 @@ import io.ktor.server.routing.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import optimusfly.data.whatsappApi.WhatsAppApi
-import optimusfly.domain.model.gpt.openai.GptResponseModel
 import optimusfly.domain.model.whatsapp.WebHookPetitionModel
 import optimusfly.domain.model.whatsapp.get.ResponseMessageSuccess
 import optimusfly.domain.model.whatsapp.send.Language
@@ -41,7 +40,7 @@ fun Application.whatsappModule() {
             val gson2 = Gson()
             val request2 = gson2.fromJson(call.receiveText(), WebHookPetitionModel::class.java)
 
-            println("este es:" + request2)
+            println("este es:"+request2)
             val mockMessage = MessageModel(
                 messaging_product = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.text?.body.orEmpty(),
                 to = "573157119388",
@@ -57,17 +56,12 @@ fun Application.whatsappModule() {
             val whatsAppApi =
                 WhatsAppApi("EAAMZBu7GdAScBAGS5fhE9BlxOZCUE71leopZCHXrlPZAURQZBpC4Lg2wRCfv8ipA9PLlusfTyVYjdgzqdrBHY4zO5CxZBqZADMg6Go90evMPNTkdYx0OCz1vs5XqTKxl7ZCrQwrfpdECoIw63k261jFieS0xci8reVtMEv8VoSoJYJpXvJ91Lk0yGQdlP7kEJMJ614voSMBF9varIYdKc6ZBa")
 
-            launch(Dispatchers.IO) {
-                val response = whatsAppApi.sendMessage(
-                    mockMessage
-                )
-
-                if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}") else {
-                    val gson = Gson()
-                    val response = gson.fromJson(response.body!!.string(), MessageResponseModel::class.java)
-                    call.respond(HttpStatusCode.OK, response)
-                }
-            }
+          /**  launch(Dispatchers.IO) {
+            val response = whatsAppApi.sendMessage(
+            mockMessage
+            )
+            if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
+            }**/
 
             call.respond(HttpStatusCode.OK)
         }
