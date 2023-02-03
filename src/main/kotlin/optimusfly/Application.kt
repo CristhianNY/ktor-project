@@ -12,6 +12,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import optimusfly.plugins.configureRouting
 import optimusfly.plugins.sermonModule
 import optimusfly.plugins.userModule
+import optimusfly.plugins.whatsappModule
 import optimusfly.utils.TokenManager
 
 fun main() {
@@ -45,5 +46,6 @@ fun Application.module() {
     configureRouting()
     userModule()
     sermonModule()
+    whatsappModule()
 }
 
