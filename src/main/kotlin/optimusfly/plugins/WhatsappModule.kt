@@ -56,7 +56,7 @@ fun Application.whatsappModule() {
             val whatsAppApi =
                 WhatsAppApi("EAAMZBu7GdAScBAGS5fhE9BlxOZCUE71leopZCHXrlPZAURQZBpC4Lg2wRCfv8ipA9PLlusfTyVYjdgzqdrBHY4zO5CxZBqZADMg6Go90evMPNTkdYx0OCz1vs5XqTKxl7ZCrQwrfpdECoIw63k261jFieS0xci8reVtMEv8VoSoJYJpXvJ91Lk0yGQdlP7kEJMJ614voSMBF9varIYdKc6ZBa")
 
-            runBlocking {
+
                 val response = withContext(Dispatchers.IO) {
                     whatsAppApi.sendMessage(
                         mockMessage
@@ -71,7 +71,7 @@ fun Application.whatsappModule() {
                 )
 
                 call.respond(HttpStatusCode.OK, responseSuccess)
-            }
+
         }
 
 
