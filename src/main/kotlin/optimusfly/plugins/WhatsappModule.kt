@@ -9,15 +9,12 @@ import io.ktor.server.routing.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import optimusfly.data.db.DatabaseConnection
-import optimusfly.data.user.UserEntity
 import optimusfly.data.whatsapp.WhatsappMessageEntity
 import optimusfly.data.whatsappApi.WhatsAppApi
 import optimusfly.domain.model.user.UserResponse
 import optimusfly.domain.model.whatsapp.WebHookPetitionModel
-import optimusfly.domain.model.whatsapp.get.ResponseMessageSuccess
 import optimusfly.domain.model.whatsapp.send.Language
 import optimusfly.domain.model.whatsapp.send.MessageModel
-import optimusfly.domain.model.whatsapp.send.MessageResponseModel
 import optimusfly.domain.model.whatsapp.send.Template
 import org.ktorm.dsl.*
 import java.io.IOException
@@ -45,7 +42,6 @@ fun Application.whatsappModule() {
             val gson2 = Gson()
             val request2 = gson2.fromJson(call.receiveText(), WebHookPetitionModel::class.java)
 
-            println("este es:" + request2)
             val mockMessage = MessageModel(
                 messaging_product = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.text?.body.orEmpty(),
                 to = "573157119388",
@@ -58,14 +54,16 @@ fun Application.whatsappModule() {
                 )
             )
 
-            val messageId = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.id.orEmpty()
+            val messageId = request2.entry?.first()?.id.orEmpty()
 
+            println(messageId)
+            
             val message = db.from(WhatsappMessageEntity).select()
                 .where { WhatsappMessageEntity.idMessage eq messageId }
                 .map { it[WhatsappMessageEntity.idMessage] }
                 .firstOrNull()
 
-            if(message==null) {
+            if (message == null) {
                 val whatsAppApi =
                     WhatsAppApi("2EAAMZBu7GdAScBAKGOkhaVZA9FueJWQupu72vL4GMSrEZA4NoRerYGaecbAMOUpzDaDreTyRShZCwNS26UHJC8ExxnKgdEZASZBk9xGOmPRm38WJtuMxwPtd5zognI1ls8kBVtN1KmgnAMGNdkcyXM0nEyfllZBRRp3H7KodPb7YZBzlhjOb2bZABMY14OV6XqUVrjGE0xFOxLFK4YQamIYu3k")
 
@@ -75,7 +73,6 @@ fun Application.whatsappModule() {
                     )
                     if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
                 }
-
             }
 
             val result = db.insert(WhatsappMessageEntity) {
@@ -125,6 +122,6 @@ fun Application.whatsappModule() {
                 .map { it[WhatsappMessageEntity.idMessage] }
             call.respond(HttpStatusCode.OK, message)
         }
-        
+
     }
 }
