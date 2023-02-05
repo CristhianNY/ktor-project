@@ -120,5 +120,11 @@ fun Application.whatsappModule() {
             call.respond(HttpStatusCode.OK)
         }
 
+        get("/get-messages-id") {
+            val message = db.from(WhatsappMessageEntity).select()
+                .map { it[WhatsappMessageEntity.idMessage] }
+            call.respond(HttpStatusCode.OK, message)
+        }
+        
     }
 }
