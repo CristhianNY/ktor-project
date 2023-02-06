@@ -9,6 +9,7 @@ import io.ktor.server.routing.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import optimusfly.data.db.DatabaseConnection
+import optimusfly.data.user.UserEntity
 import optimusfly.data.whatsapp.WhatsappMessageEntity
 import optimusfly.data.whatsappApi.WhatsAppApi
 import optimusfly.domain.model.user.UserResponse
@@ -55,11 +56,11 @@ fun Application.whatsappModule() {
             )
 
             val messageId = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.id
-
-
-            val message = db.from(WhatsappMessageEntity).select()
+            
+            val message: Int = db.from(WhatsappMessageEntity).select()
                 .where { WhatsappMessageEntity.idMessage eq messageId.orEmpty() }
-
+                .map { it[WhatsappMessageEntity.idMessage] }
+                .size
 
             println("mensaje id"+message)
 
