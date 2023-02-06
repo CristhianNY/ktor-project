@@ -66,12 +66,12 @@ fun Application.whatsappModule() {
                 .map { it[WhatsappMessageEntity.idMessage] }
                 .size
 
-            println("mensaje id"+message + "con"+  messageId)
+            println("mensaje id" + message + "con" + messageId)
 
 
-            if (message <= 1) {
+            if (request2.entry?.first()?.changes?.first()?.value?.messages?.first() != null) {
                 val whatsAppApi =
-                    WhatsAppApi("3EAAMZBu7GdAScBAKGOkhaVZA9FueJWQupu72vL4GMSrEZA4NoRerYGaecbAMOUpzDaDreTyRShZCwNS26UHJC8ExxnKgdEZASZBk9xGOmPRm38WJtuMxwPtd5zognI1ls8kBVtN1KmgnAMGNdkcyXM0nEyfllZBRRp3H7KodPb7YZBzlhjOb2bZABMY14OV6XqUVrjGE0xFOxLFK4YQamIYu3k")
+                    WhatsAppApi("EAAMZBu7GdAScBAKGOkhaVZA9FueJWQupu72vL4GMSrEZA4NoRerYGaecbAMOUpzDaDreTyRShZCwNS26UHJC8ExxnKgdEZASZBk9xGOmPRm38WJtuMxwPtd5zognI1ls8kBVtN1KmgnAMGNdkcyXM0nEyfllZBRRp3H7KodPb7YZBzlhjOb2bZABMY14OV6XqUVrjGE0xFOxLFK4YQamIYu3k")
 
                 launch(Dispatchers.IO) {
                     val response = whatsAppApi.sendMessage(
