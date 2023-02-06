@@ -57,7 +57,7 @@ fun Application.whatsappModule() {
             val messageId = request2.entry?.first()?.id.orEmpty()
 
             println(messageId)
-            
+
             val message = db.from(WhatsappMessageEntity).select()
                 .where { WhatsappMessageEntity.idMessage eq messageId }
                 .map { it[WhatsappMessageEntity.idMessage] }
@@ -76,7 +76,7 @@ fun Application.whatsappModule() {
             }
 
             val result = db.insert(WhatsappMessageEntity) {
-                set(it.idMessage, request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.id)
+                set(it.idMessage, messageId)
             }
 
             if (result == SUCCESS_INSERT) {
