@@ -56,7 +56,11 @@ fun Application.whatsappModule() {
             )
 
             val messageId = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.id
-            
+
+            db.insert(WhatsappMessageEntity) {
+                set(it.idMessage, messageId)
+            }
+
             val message: Int = db.from(WhatsappMessageEntity).select()
                 .where { WhatsappMessageEntity.idMessage eq messageId.orEmpty() }
                 .map { it[WhatsappMessageEntity.idMessage] }
@@ -65,7 +69,7 @@ fun Application.whatsappModule() {
             println("mensaje id"+message + "con"+  messageId)
 
 
-            if (message < 1) {
+            if (message <= 1) {
                 val whatsAppApi =
                     WhatsAppApi("2EAAMZBu7GdAScBAKGOkhaVZA9FueJWQupu72vL4GMSrEZA4NoRerYGaecbAMOUpzDaDreTyRShZCwNS26UHJC8ExxnKgdEZASZBk9xGOmPRm38WJtuMxwPtd5zognI1ls8kBVtN1KmgnAMGNdkcyXM0nEyfllZBRRp3H7KodPb7YZBzlhjOb2bZABMY14OV6XqUVrjGE0xFOxLFK4YQamIYu3k")
 
