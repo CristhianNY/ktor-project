@@ -7,16 +7,16 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import okhttp3.Response
 import optimusfly.data.db.DatabaseConnection
-import optimusfly.data.user.UserEntity
+import optimusfly.data.openai.OpenAI
 import optimusfly.data.whatsapp.WhatsappMessageEntity
 import optimusfly.data.whatsappApi.WhatsAppApi
-import optimusfly.domain.model.user.UserResponse
+import optimusfly.domain.model.gpt.openai.GptResponseModel
 import optimusfly.domain.model.whatsapp.WebHookPetitionModel
-import optimusfly.domain.model.whatsapp.send.Language
-import optimusfly.domain.model.whatsapp.send.MessageModel
-import optimusfly.domain.model.whatsapp.send.Template
+import optimusfly.domain.model.whatsapp.send.*
 import org.ktorm.dsl.*
 import java.io.IOException
 
@@ -43,19 +43,11 @@ fun Application.whatsappModule() {
             val gson2 = Gson()
             val request2 = gson2.fromJson(call.receiveText(), WebHookPetitionModel::class.java)
 
-            val mockMessage = MessageModel(
-                messaging_product = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.text?.body.orEmpty(),
-                to = "573157119388",
-                type = "template",
-                template = Template(
-                    name = "hello_world",
-                    language = Language(
-                        code = "en_US"
-                    )
-                )
-            )
+            var gptAnswer: GptResponseModel? = null
 
             val messageId = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.id
+
+            val messagePrompt = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.text?.body.orEmpty()
 
             db.insert(WhatsappMessageEntity) {
                 set(it.idMessage, messageId)
@@ -69,22 +61,42 @@ fun Application.whatsappModule() {
             println("mensaje id" + message + "con" + messageId)
 
 
-            if (request2.entry?.first()?.changes?.first()?.value?.messages?.first() != null) {
+            if (request2.entry?.first()?.changes?.first()?.value?.statuses?.first() == null) {
                 val whatsAppApi =
                     WhatsAppApi("EAAMZBu7GdAScBAKGOkhaVZA9FueJWQupu72vL4GMSrEZA4NoRerYGaecbAMOUpzDaDreTyRShZCwNS26UHJC8ExxnKgdEZASZBk9xGOmPRm38WJtuMxwPtd5zognI1ls8kBVtN1KmgnAMGNdkcyXM0nEyfllZBRRp3H7KodPb7YZBzlhjOb2bZABMY14OV6XqUVrjGE0xFOxLFK4YQamIYu3k")
 
+
+
                 launch(Dispatchers.IO) {
+                    val gptResponse =   async {
+                        val openai = OpenAI(apiKey = "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")
+
+                        val response: Response = openai.completion(
+                            prompt = messagePrompt,
+                            maxTokens = 2048
+                        )
+
+                        val gson = Gson()
+                        gptAnswer = gson.fromJson(response.body!!.string(), GptResponseModel::class.java)
+
+                    }
+
+                    gptResponse.await()
+
+
+                    val mockTextMessage = MessageToSendModel(
+                        messaging_product = "whatsapp",
+                        to = "573157119388",
+                        type = "text",
+                        text = Text(
+                            preview_url = false,
+                            body = gptAnswer?.choices?.first()?.text.orEmpty()
+                        )
+                    )
                     val response = whatsAppApi.sendMessage(
-                        mockMessage
+                        mockTextMessage
                     )
                     if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
-                }
-            }
-
-
-            if (messageId != null) {
-                db.insert(WhatsappMessageEntity) {
-                    set(it.idMessage, messageId)
                 }
             }
 
@@ -96,15 +108,13 @@ fun Application.whatsappModule() {
             val gson2 = Gson()
             val request2 = gson2.fromJson(call.receiveText(), WebHookPetitionModel::class.java)
 
-            val mockMessage = MessageModel(
-                messaging_product = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.text?.body.orEmpty(),
+            val mockTextMessage = MessageToSendModel(
+                messaging_product = "whatsapp",
                 to = "573157119388",
-                type = "template",
-                template = Template(
-                    name = "hello_world",
-                    language = Language(
-                        code = "en_US"
-                    )
+                type = "text",
+                text = Text(
+                    preview_url = false,
+                    body = "MESSAGE_CONTENT"
                 )
             )
 
@@ -113,7 +123,7 @@ fun Application.whatsappModule() {
 
             launch(Dispatchers.IO) {
                 val response = whatsAppApi.sendMessage(
-                    mockMessage
+                    mockTextMessage
                 )
                 if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
             }

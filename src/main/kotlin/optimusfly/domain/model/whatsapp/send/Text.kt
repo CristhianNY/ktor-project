@@ -3,6 +3,7 @@ package optimusfly.domain.model.whatsapp.send
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Message(
-    val id: String
+data class Text(
+    val preview_url: Boolean,
+    val body: String
 )
