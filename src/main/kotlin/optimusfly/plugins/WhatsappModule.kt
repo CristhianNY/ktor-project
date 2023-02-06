@@ -59,10 +59,10 @@ fun Application.whatsappModule() {
 
             val message = db.from(WhatsappMessageEntity).select()
                 .where { WhatsappMessageEntity.idMessage eq messageId.orEmpty() }
-                .map { it[WhatsappMessageEntity.idMessage] }
-                .firstOrNull()
+
 
             println("mensaje id"+message)
+
 
             if (message == null) {
                 val whatsAppApi =
