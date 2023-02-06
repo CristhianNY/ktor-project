@@ -86,7 +86,7 @@ fun Application.whatsappModule() {
 
                     val mockTextMessage = MessageToSendModel(
                         messaging_product = "whatsapp",
-                        to = "573157119388",
+                        to = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.from.orEmpty(),
                         type = "text",
                         text = Text(
                             preview_url = false,
