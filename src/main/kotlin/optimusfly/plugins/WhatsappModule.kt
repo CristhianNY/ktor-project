@@ -62,7 +62,7 @@ fun Application.whatsappModule() {
                 .map { it[WhatsappMessageEntity.idMessage] }
                 .size
 
-            println("mensaje id"+message)
+            println("mensaje id"+message + "con"+  messageId)
 
 
             if (message == null) {
