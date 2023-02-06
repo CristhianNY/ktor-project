@@ -56,7 +56,7 @@ fun Application.whatsappModule() {
 
             val messageId = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.id
 
-            println(messageId)
+            println("mensaje id$messageId")
 
             val message = db.from(WhatsappMessageEntity).select()
                 .where { WhatsappMessageEntity.idMessage eq messageId.orEmpty() }
