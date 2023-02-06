@@ -56,14 +56,13 @@ fun Application.whatsappModule() {
 
             val messageId = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.id
 
-            println("mensaje id$messageId")
 
             val message = db.from(WhatsappMessageEntity).select()
                 .where { WhatsappMessageEntity.idMessage eq messageId.orEmpty() }
                 .map { it[WhatsappMessageEntity.idMessage] }
                 .firstOrNull()
 
-            println(message)
+            println("mensaje id"+message)
 
             if (message == null) {
                 val whatsAppApi =
