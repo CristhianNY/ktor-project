@@ -54,12 +54,12 @@ fun Application.whatsappModule() {
                 )
             )
 
-            val messageId = request2.entry?.first()?.id.orEmpty()
+            val messageId = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.id
 
             println(messageId)
 
             val message = db.from(WhatsappMessageEntity).select()
-                .where { WhatsappMessageEntity.idMessage eq messageId }
+                .where { WhatsappMessageEntity.idMessage eq messageId.orEmpty() }
                 .map { it[WhatsappMessageEntity.idMessage] }
                 .firstOrNull()
 
@@ -75,16 +75,14 @@ fun Application.whatsappModule() {
                 }
             }
 
-            val result = db.insert(WhatsappMessageEntity) {
-                set(it.idMessage, messageId)
+
+            if (messageId != null) {
+                db.insert(WhatsappMessageEntity) {
+                    set(it.idMessage, messageId)
+                }
             }
 
-            if (result == SUCCESS_INSERT) {
-                call.respond(HttpStatusCode.OK)
-            } else {
-                call.respond(HttpStatusCode.BadRequest, UserResponse(success = true, data = "Error Inserting"))
-
-            }
+            call.respond(HttpStatusCode.OK)
 
         }
 
