@@ -1,5 +1,6 @@
 package optimusfly.data.openai
 
+import com.google.gson.GsonBuilder
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -12,17 +13,35 @@ class OpenAI(apiKey: String) {
     fun completion(prompt: String, maxTokens: Int): Response {
 
         val mediaType = "application/json".toMediaTypeOrNull()
-        val body = "{\"model\":\"text-davinci-003\",\"prompt\":\"$prompt\\nFriend:\",\"temperature\":0.5,\"max_tokens\":60,\"top_p\":1.0,\"frequency_penalty\":0.5,\"presence_penalty\":0.0,\"stop\":[\"You:\"]}"
+        val body =
+            "{\"model\":\"text-davinci-003\",\"prompt\":\"$prompt\\nFriend:\",\"temperature\":0.5,\"max_tokens\":60,\"top_p\":1.0,\"frequency_penalty\":0.5,\"presence_penalty\":0.0,\"stop\":[\"You:\"]}"
         val request = Request.Builder()
             .url("https://api.openai.com/v1/completions")
             .post(RequestBody.create(mediaType, body))
             .addHeader("Content-Type", "application/json")
-            .addHeader("Authorization", "Bearer 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")
+            .addHeader("Authorization", "Bearer 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")
             .build()
 
 
         return client.newCall(request).execute()
     }
 
+
+    fun chatCompletion(model: String, messages: List<Map<String, String>>): Response {
+        val mediaType = "application/json".toMediaTypeOrNull()
+        val json = "{\"model\":\"$model\",\"messages\":${toJson(messages)}}"
+        val request = Request.Builder()
+            .url("https://api.openai.com/v1/chat/completions")
+            .post(RequestBody.create(mediaType, json))
+            .addHeader("Content-Type", "application/json")
+            .addHeader("Authorization", "Bearer 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")
+            .build()
+
+        return client.newCall(request).execute()
+    }
+
+    private fun toJson(obj: Any): String {
+        return GsonBuilder().create().toJson(obj)
+    }
 
 }
