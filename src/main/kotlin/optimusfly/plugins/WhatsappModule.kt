@@ -64,10 +64,7 @@ fun Application.whatsappModule() {
 
 
             if (request2.entry?.first()?.changes?.first()?.value?.statuses?.first() == null) {
-                val whatsAppApi =
-                    WhatsAppApi("EAAMZBu7GdAScBABzWKROdNjjD9Tp1VX2VntNrUZBlbCktz8BLCp8yEbmaZAzA1ZARL6SW3Vwoq650hqnrYZC6JHAL8LaqxqLCER6b5UwqyCNhVzd2lMDLUxZBJCJoZCEZCN75ZCYHd9GIDW88Om9SpZAfx2u4DkoI9SXJqv3gTkjqnuZBkLK1YZAzaqibXvR9WrfpdtVjhua0lVDo35etXFwsv63")
-
-
+                val whatsAppApi = WhatsAppApi()
 
                 launch(Dispatchers.IO) {
                     val gptResponse = async {
@@ -129,8 +126,7 @@ fun Application.whatsappModule() {
                 )
             )
 
-            val whatsAppApi =
-                WhatsAppApi("EAAMZBu7GdAScBACJg0zZACLHZC5eTzT1rs1ihGFe7PjUKHSfZCk1l1S7R4AQRIsHmXR3UN8vUqFyXj9H3ztk47JMz5mdXqBntJgjkEG8EbRA1hBdQw5qLihMInulMFqYZBbOq9yCyRMqZBO35mGWGm6t4vEjucFQ3HrBjBZBqZA67pT9QmP5BUVCaz8QVKmHpIA2vGA5vqaJV9izZCeMkWGTQ")
+            val whatsAppApi = WhatsAppApi()
 
             launch(Dispatchers.IO) {
                 val response = whatsAppApi.sendMessage(
