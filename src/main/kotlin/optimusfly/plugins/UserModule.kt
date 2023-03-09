@@ -266,31 +266,32 @@ fun Application.userModule() {
                     set(it.userId, userId)
                 }
 
-                if (result == SUCCESS_INSERT) {
-                    // sen successfully response to the client
 
-                    val whatsAppApi = WhatsAppApi()
+                val whatsAppApi = WhatsAppApi()
 
-                    val messageRequest = MessageTemplate(
-                        messaging_product = "whatsapp",
-                        to = phoneNumber,
-                        type = "template",
-                        template = FacebookTemplate(
-                            name = "autorization",
-                            language = FacebookLanguage(
-                                code = "es_ES"
-                            )
+                val messageRequest = MessageTemplate(
+                    messaging_product = "whatsapp",
+                    to = phoneNumber,
+                    type = "template",
+                    template = FacebookTemplate(
+                        name = "autorization",
+                        language = FacebookLanguage(
+                            code = "es_ES"
                         )
                     )
+                )
 
 
-                    launch(Dispatchers.IO) {
-                        val response = whatsAppApi.sendMessageTemplate(
-                            messageRequest
-                        )
-                        if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
-                    }
+                launch(Dispatchers.IO) {
+                    val response = whatsAppApi.sendMessageTemplate(
+                        messageRequest
+                    )
+                    if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
+                }
 
+                if (result == SUCCESS_INSERT) {
+                    // sen successfully response to the client
+                    
                     call.respond(HttpStatusCode.OK)
                     call.respond(
                         HttpStatusCode.OK,
