@@ -10,17 +10,23 @@ import io.ktor.server.config.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import optimusfly.data.db.DatabaseConnection
 import optimusfly.data.openai.OpenAI
+import optimusfly.data.user.PhoneNumberEntity
 import optimusfly.data.user.UserEntity
+import optimusfly.data.whatsappApi.WhatsAppApi
 import optimusfly.domain.model.dialogflowcx.cxrequest.DialogCXRequestModel
 import optimusfly.domain.model.dialogflowcx.cxrequestv3.CxRequestV3Model
 import optimusfly.domain.model.gpt.openai.GptResponseModel
 import optimusfly.domain.model.gpt.openai.toDialogFlowResponseCXModel
-import optimusfly.domain.model.user.UserCredentials
-import optimusfly.domain.model.user.UserModel
-import optimusfly.domain.model.user.UserRequest
-import optimusfly.domain.model.user.UserResponse
+import optimusfly.domain.model.user.*
+import optimusfly.domain.model.whatsapp.send.MessageToSendModel
+import optimusfly.domain.model.whatsapp.send.Text
+import optimusfly.domain.model.whatsapp.send_welcome.FacebookLanguage
+import optimusfly.domain.model.whatsapp.send_welcome.FacebookTemplate
+import optimusfly.domain.model.whatsapp.send_welcome.MessageTemplate
 import optimusfly.utils.TokenManager
 import org.ktorm.dsl.*
 import org.mindrot.jbcrypt.BCrypt
@@ -234,7 +240,70 @@ fun Application.userModule() {
                 call.respondText("Hola , $email con id $userId")
             }
 
+
+            post("register-phone-number") {
+                val request = call.receive<PhoneNumberRequest>()
+                val principal = call.principal<JWTPrincipal>()
+                val userId = principal!!.payload.getClaim("userId").asInt()
+                val phoneNumber = request.phoneNumber
+
+                val phoneNumberValue = db.from(PhoneNumberEntity).select()
+                    .where { PhoneNumberEntity.phoneNumber eq phoneNumber }
+                    .map { it[PhoneNumberEntity.phoneNumber] }
+                    .firstOrNull()
+
+
+                if (phoneNumberValue != null) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        UserResponse(success = true, data = "PhoneNumber already exists, please try with another Phone")
+                    )
+                    return@post
+                }
+
+                val result = db.insert(PhoneNumberEntity) {
+                    set(it.phoneNumber, request.phoneNumber)
+                    set(it.userId, userId)
+                }
+
+                if (result == SUCCESS_INSERT) {
+                    // sen successfully response to the client
+
+                    val whatsAppApi = WhatsAppApi()
+
+                    val messageRequest = MessageTemplate(
+                        messaging_product = "whatsapp",
+                        to = phoneNumber,
+                        type = "template",
+                        template = FacebookTemplate(
+                            name = "autorization",
+                            language = FacebookLanguage(
+                                code = "es_ES"
+                            )
+                        )
+                    )
+
+
+                    launch(Dispatchers.IO) {
+                        val response = whatsAppApi.sendMessageTemplate(
+                            messageRequest
+                        )
+                        if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
+                    }
+
+                    call.respond(HttpStatusCode.OK)
+                    call.respond(
+                        HttpStatusCode.OK,
+                        UserResponse(success = true, data = "values has been successfully inserted")
+                    )
+                } else {
+                    call.respond(HttpStatusCode.BadRequest, UserResponse(success = true, data = "Error Inserting"))
+
+                }
+            }
+
         }
+
     }
 }
 
