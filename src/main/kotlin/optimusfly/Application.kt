@@ -16,7 +16,7 @@ import optimusfly.plugins.whatsappModule
 import optimusfly.utils.TokenManager
 
 fun main() {
-    embeddedServer(CIO, port = System.getenv("PORT").toInt(), host = "0.0.0.0") {
+    embeddedServer(CIO, port = 8080, host = "0.0.0.0") {
         val config = HoconApplicationConfig(ConfigFactory.load())
         val tokenManager = TokenManager(config)
         install(Authentication) {

@@ -10,6 +10,7 @@ import io.ktor.server.config.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.pipeline.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import optimusfly.data.db.DatabaseConnection
@@ -22,8 +23,6 @@ import optimusfly.domain.model.dialogflowcx.cxrequestv3.CxRequestV3Model
 import optimusfly.domain.model.gpt.openai.GptResponseModel
 import optimusfly.domain.model.gpt.openai.toDialogFlowResponseCXModel
 import optimusfly.domain.model.user.*
-import optimusfly.domain.model.whatsapp.send.MessageToSendModel
-import optimusfly.domain.model.whatsapp.send.Text
 import optimusfly.domain.model.whatsapp.send_welcome.FacebookLanguage
 import optimusfly.domain.model.whatsapp.send_welcome.FacebookTemplate
 import optimusfly.domain.model.whatsapp.send_welcome.MessageTemplate
@@ -87,7 +86,7 @@ fun Application.userModule() {
             val gptResponse = gson.fromJson(response.body!!.string(), GptResponseModel::class.java)
 
 
-            call.respond( HttpStatusCode.OK, gptResponse!!.toDialogFlowResponseCXModel())
+            call.respond(HttpStatusCode.OK, gptResponse!!.toDialogFlowResponseCXModel())
         }
 
         post("/get-gpt-response-from-gpt-not-intent") {
@@ -107,7 +106,7 @@ fun Application.userModule() {
             val gptResponse = gson.fromJson(response.body!!.string(), GptResponseModel::class.java)
 
 
-            call.respond( HttpStatusCode.OK, gptResponse!!.toDialogFlowResponseCXModel())
+            call.respond(HttpStatusCode.OK, gptResponse!!.toDialogFlowResponseCXModel())
         }
 
         get("/get-user-information") {
@@ -247,6 +246,8 @@ fun Application.userModule() {
                 val userId = principal!!.payload.getClaim("userId").asInt()
                 val phoneNumber = request.phoneNumber
 
+                sendWhatsappMessage(phoneNumber, this)
+
                 val phoneNumberValue = db.from(PhoneNumberEntity).select()
                     .where { PhoneNumberEntity.phoneNumber eq phoneNumber }
                     .map { it[PhoneNumberEntity.phoneNumber] }
@@ -266,32 +267,9 @@ fun Application.userModule() {
                     set(it.userId, userId)
                 }
 
-
-                val whatsAppApi = WhatsAppApi()
-
-                val messageRequest = MessageTemplate(
-                    messaging_product = "whatsapp",
-                    to = phoneNumber,
-                    type = "template",
-                    template = FacebookTemplate(
-                        name = "autorization",
-                        language = FacebookLanguage(
-                            code = "es_ES"
-                        )
-                    )
-                )
-
-
-                launch(Dispatchers.IO) {
-                    val response = whatsAppApi.sendMessageTemplate(
-                        messageRequest
-                    )
-                    if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
-                }
-
                 if (result == SUCCESS_INSERT) {
                     // sen successfully response to the client
-                    
+
                     call.respond(HttpStatusCode.OK)
                     call.respond(
                         HttpStatusCode.OK,
@@ -299,11 +277,36 @@ fun Application.userModule() {
                     )
                 } else {
                     call.respond(HttpStatusCode.BadRequest, UserResponse(success = true, data = "Error Inserting"))
-
                 }
             }
 
         }
+
+
+    }
+}
+
+fun sendWhatsappMessage(phoneNumber: String, launch: PipelineContext<Unit, ApplicationCall>) {
+
+    val whatsAppApi = WhatsAppApi()
+
+    val messageRequest = MessageTemplate(
+        messaging_product = "whatsapp",
+        to = phoneNumber,
+        type = "template",
+        template = FacebookTemplate(
+            name = "autorization",
+            language = FacebookLanguage(
+                code = "es"
+            )
+        )
+    )
+
+    launch.launch {
+        val response = whatsAppApi.sendMessageTemplate(
+            messageRequest
+        )
+        if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
 
     }
 }
