@@ -9,5 +9,5 @@ data class UserModel(
     val lastName: String?,
     val email: String?,
     val password: String?,
-    val subscription: Int
+    val subscription: Int?
 )

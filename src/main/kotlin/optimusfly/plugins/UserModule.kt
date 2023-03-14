@@ -62,8 +62,7 @@ fun Application.userModule() {
             val textPrompt = call.request.queryParameters["text"].orEmpty()
 
             val response = openai.completion(
-                prompt = textPrompt,
-                maxTokens = 2048
+                prompt = textPrompt, maxTokens = 2048
             )
 
             if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
@@ -77,8 +76,7 @@ fun Application.userModule() {
             val request = call.receive<DialogCXRequestModel>()
 
             val response = openai.completion(
-                prompt = request.text.orEmpty(),
-                maxTokens = 2048
+                prompt = request.text.orEmpty(), maxTokens = 2048
             )
 
             if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
@@ -97,8 +95,7 @@ fun Application.userModule() {
 
 
             val response = openai.completion(
-                prompt = request2.text.orEmpty(),
-                maxTokens = 2048
+                prompt = request2.text.orEmpty(), maxTokens = 2048
             )
 
             if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
@@ -125,9 +122,7 @@ fun Application.userModule() {
             val email = request.email.toString()
             val password = request.hashedPassword()
 
-            val user = db.from(UserEntity).select()
-                .where { UserEntity.email eq email }
-                .map { it[UserEntity.email] }
+            val user = db.from(UserEntity).select().where { UserEntity.email eq email }.map { it[UserEntity.email] }
                 .firstOrNull()
 
 
@@ -149,8 +144,7 @@ fun Application.userModule() {
             if (result == SUCCESS_INSERT) {
                 // sen successfully response to the client
                 call.respond(
-                    HttpStatusCode.OK,
-                    UserResponse(success = true, data = "values has been successfully inserted")
+                    HttpStatusCode.OK, UserResponse(success = true, data = "values has been successfully inserted")
                 )
             } else {
                 call.respond(HttpStatusCode.BadRequest, UserResponse(success = true, data = "Error Inserting"))
@@ -171,8 +165,7 @@ fun Application.userModule() {
 
             if (rowAffected == 1) {
                 call.respond(
-                    HttpStatusCode.OK,
-                    UserResponse(success = true, data = "values has been successfully updated")
+                    HttpStatusCode.OK, UserResponse(success = true, data = "values has been successfully updated")
                 )
             } else {
                 call.respond(HttpStatusCode.BadRequest, UserResponse(success = true, data = "Error updated"))
@@ -188,8 +181,7 @@ fun Application.userModule() {
 
             if (rowAffected == 1) {
                 call.respond(
-                    HttpStatusCode.OK,
-                    UserResponse(success = true, data = "values has been successfully deleted")
+                    HttpStatusCode.OK, UserResponse(success = true, data = "values has been successfully deleted")
                 )
             } else {
                 call.respond(HttpStatusCode.BadRequest, UserResponse(success = true, data = "Error deleted"))
@@ -213,8 +205,7 @@ fun Application.userModule() {
 
             if (user == null) {
                 call.respond(
-                    HttpStatusCode.BadRequest,
-                    UserResponse(success = false, data = "Invalid email or password")
+                    HttpStatusCode.BadRequest, UserResponse(success = false, data = "Invalid email or password")
                 )
                 return@post
             }
@@ -223,8 +214,7 @@ fun Application.userModule() {
 
             if (!doesPasswordMatch) {
                 call.respond(
-                    HttpStatusCode.Unauthorized,
-                    UserResponse(success = false, data = "Invalid email or password")
+                    HttpStatusCode.Unauthorized, UserResponse(success = false, data = "Invalid email or password")
                 )
             }
 
@@ -236,9 +226,22 @@ fun Application.userModule() {
             get("/me") {
                 val principal = call.principal<JWTPrincipal>()
                 val email = principal!!.payload.getClaim("email").asString()
-                val user = db.from(UserEntity).select()
-                    .where { UserEntity.email eq email }
-                call.respond(user)
+                val user = db.from(UserEntity).select().where { UserEntity.email eq email }.map {
+                    UserModel(
+                        it[UserEntity.id],
+                        it[UserEntity.name],
+                        it[UserEntity.lastName],
+                        it[UserEntity.email],
+                        it[UserEntity.password],
+                        it[UserEntity.subscription]
+                    )
+                }.firstOrNull()
+                user?.let {
+                    call.respond(it)
+                } ?: call.respond(
+                    HttpStatusCode.InternalServerError,
+                    UserResponse(success = true, data = "Error Inserting")
+                )
             }
 
 
@@ -250,10 +253,9 @@ fun Application.userModule() {
 
                 sendWhatsappMessage(phoneNumber, this)
 
-                val phoneNumberValue = db.from(PhoneNumberEntity).select()
-                    .where { PhoneNumberEntity.phoneNumber eq phoneNumber }
-                    .map { it[PhoneNumberEntity.phoneNumber] }
-                    .firstOrNull()
+                val phoneNumberValue =
+                    db.from(PhoneNumberEntity).select().where { PhoneNumberEntity.phoneNumber eq phoneNumber }
+                        .map { it[PhoneNumberEntity.phoneNumber] }.firstOrNull()
 
 
                 if (phoneNumberValue != null) {
@@ -274,8 +276,7 @@ fun Application.userModule() {
 
                     call.respond(HttpStatusCode.OK)
                     call.respond(
-                        HttpStatusCode.OK,
-                        UserResponse(success = true, data = "values has been successfully inserted")
+                        HttpStatusCode.OK, UserResponse(success = true, data = "values has been successfully inserted")
                     )
                 } else {
                     call.respond(HttpStatusCode.BadRequest, UserResponse(success = true, data = "Error Inserting"))
@@ -293,12 +294,8 @@ fun sendWhatsappMessage(phoneNumber: String, launch: PipelineContext<Unit, Appli
     val whatsAppApi = WhatsAppApi()
 
     val messageRequest = MessageTemplate(
-        messaging_product = "whatsapp",
-        to = phoneNumber,
-        type = "template",
-        template = FacebookTemplate(
-            name = "autorization",
-            language = FacebookLanguage(
+        messaging_product = "whatsapp", to = phoneNumber, type = "template", template = FacebookTemplate(
+            name = "autorization", language = FacebookLanguage(
                 code = "es"
             )
         )
