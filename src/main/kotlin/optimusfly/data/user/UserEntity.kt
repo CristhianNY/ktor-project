@@ -10,5 +10,5 @@ object UserEntity: Table<Nothing>("user") {
     val lastName = varchar("last_name")
     val email = varchar("email")
     val password = varchar("password")
-    val subscription = int("password")
+    val subscription = int("subscription")
 }
