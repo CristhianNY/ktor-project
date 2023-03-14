@@ -49,7 +49,7 @@ fun Application.userModule() {
                     val password = it[UserEntity.password]
                     val subscription = it[UserEntity.subscription]
 
-                    UserModel(id, name, lasName, email, password, subscription ?: 0)
+                    UserModel(id, name, lasName, email, password, subscription ?: 0, phoneNumber = "")
 
                 }
                 call.respond(users)
@@ -226,16 +226,23 @@ fun Application.userModule() {
             get("/me") {
                 val principal = call.principal<JWTPrincipal>()
                 val email = principal!!.payload.getClaim("email").asString()
-                val user = db.from(UserEntity).select().where { UserEntity.email eq email }.map {
-                    UserModel(
-                        it[UserEntity.id],
-                        it[UserEntity.name],
-                        it[UserEntity.lastName],
-                        it[UserEntity.email],
-                        it[UserEntity.password],
-                        it[UserEntity.subscription]
-                    )
-                }.firstOrNull()
+                val user = db.from(UserEntity)
+                    .innerJoin(PhoneNumberEntity, on = UserEntity.id eq PhoneNumberEntity.userId)
+                    .select()
+                    .where { UserEntity.email eq email }
+                    .map {
+                        UserModel(
+                            it[UserEntity.id],
+                            it[UserEntity.name],
+                            it[UserEntity.lastName],
+                            it[UserEntity.email],
+                            it[UserEntity.password],
+                            it[UserEntity.subscription],
+                            it[PhoneNumberEntity.phoneNumber]
+                        )
+                    }
+                    .firstOrNull()
+
                 user?.let {
                     call.respond(it)
                 } ?: call.respond(
