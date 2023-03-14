@@ -47,8 +47,9 @@ fun Application.userModule() {
                     val lasName = it[UserEntity.lastName]
                     val email = it[UserEntity.email]
                     val password = it[UserEntity.password]
+                    val subscription = it[UserEntity.subscription]
 
-                    UserModel(id, name, lasName, email, password)
+                    UserModel(id, name, lasName, email, password, subscription ?: 0)
 
                 }
                 call.respond(users)
@@ -235,8 +236,9 @@ fun Application.userModule() {
             get("/me") {
                 val principal = call.principal<JWTPrincipal>()
                 val email = principal!!.payload.getClaim("email").asString()
-                val userId = principal!!.payload.getClaim("userId").asInt()
-                call.respondText("Hola , $email con id $userId")
+                val user = db.from(UserEntity).select()
+                    .where { UserEntity.email eq email }
+                call.respond(user)
             }
 
 
