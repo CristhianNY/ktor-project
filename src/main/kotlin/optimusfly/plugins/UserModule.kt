@@ -251,6 +251,33 @@ fun Application.userModule() {
                 )
             }
 
+            post("/update-phone") {
+                val principal = call.principal<JWTPrincipal>()
+                val email = principal!!.payload.getClaim("email").asString()
+                val user = db.from(UserEntity)
+                    .leftJoin(PhoneNumberEntity, on = UserEntity.id eq PhoneNumberEntity.userId)
+                    .select()
+                    .where { UserEntity.email eq email }
+                    .map {
+                        UserModel(
+                            it[UserEntity.id],
+                            it[UserEntity.name],
+                            it[UserEntity.lastName],
+                            it[UserEntity.email],
+                            it[UserEntity.password],
+                            it[UserEntity.subscription],
+                            it[PhoneNumberEntity.phoneNumber]
+                        )
+                    }
+                    .firstOrNull()
+
+                user?.let {
+                    call.respond(it)
+                } ?: call.respond(
+                    HttpStatusCode.InternalServerError,
+                    UserResponse(success = true, data = "Error Inserting")
+                )
+            }
 
             post("register-phone-number") {
                 val request = call.receive<PhoneNumberRequest>()
@@ -290,9 +317,56 @@ fun Application.userModule() {
                 }
             }
 
+            post("update-phone-number") {
+                val request = call.receive<UpdatePhoneNumberRequest>()
+                val principal = call.principal<JWTPrincipal>()
+                val userId = principal!!.payload.getClaim("userId").asInt()
+                val newPhoneNumber = request.newPhoneNumber
+                val oldPhoneNumber = request.oldPhoneNumber
+
+                sendWhatsappMessage(newPhoneNumber, this)
+
+                val phoneNumberValue =
+                    db.from(PhoneNumberEntity).select().where { PhoneNumberEntity.phoneNumber eq newPhoneNumber }
+                        .map { it[PhoneNumberEntity.phoneNumber] }.firstOrNull()
+
+                if (phoneNumberValue != null) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        UserResponse(success = false, data = "New phone number already exists, please try with another phone")
+                    )
+                    return@post
+                }
+
+                val oldPhoneNumberValue =
+                    db.from(PhoneNumberEntity).select().where { PhoneNumberEntity.phoneNumber eq oldPhoneNumber }
+                        .map { it[PhoneNumberEntity.phoneNumber] }.firstOrNull()
+
+                if (oldPhoneNumberValue == null) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        UserResponse(success = false, data = "Old phone number not found, please check the phone number")
+                    )
+                    return@post
+                }
+
+                val result = db.update(PhoneNumberEntity) {
+                    where { it.phoneNumber eq oldPhoneNumber }
+                    set(it.phoneNumber, newPhoneNumber)
+                    set(it.userId, userId)
+                }
+
+                if (result > 0) {
+                    call.respond(
+                        HttpStatusCode.OK,
+                        UserResponse(success = true, data = "Phone number has been successfully updated")
+                    )
+                } else {
+                    call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = "Error updating phone number"))
+                }
+            }
+
         }
-
-
     }
 }
 
