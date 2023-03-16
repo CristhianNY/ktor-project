@@ -227,7 +227,7 @@ fun Application.userModule() {
                 val principal = call.principal<JWTPrincipal>()
                 val email = principal!!.payload.getClaim("email").asString()
                 val user = db.from(UserEntity)
-                    .innerJoin(PhoneNumberEntity, on = UserEntity.id eq PhoneNumberEntity.userId)
+                    .leftJoin(PhoneNumberEntity, on = UserEntity.id eq PhoneNumberEntity.userId)
                     .select()
                     .where { UserEntity.email eq email }
                     .map {
