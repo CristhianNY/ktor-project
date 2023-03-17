@@ -223,6 +223,33 @@ fun Application.userModule() {
         }
 
         authenticate {
+            patch("update-subscription") {
+                val request = call.receive<UpdateSubscriptionRequest>()
+                val principal = call.principal<JWTPrincipal>()
+                val userId = principal!!.payload.getClaim("userId").asInt()
+                val newSubscription = request.newSubscription
+
+                val user = db.from(UserEntity).select().where { UserEntity.id eq userId }
+                    .map { it[UserEntity.id] }.firstOrNull()
+
+                if (user == null) {
+                    call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = "User not found, please check the user ID"))
+                    return@patch
+                }
+
+                val result = db.update(UserEntity) {
+                    where { it.id eq userId }
+                    set(it.subscription, newSubscription)
+                }
+
+                if (result > 0) {
+                    call.respond(HttpStatusCode.OK, UserResponse(success = true, data = "Subscription has been successfully updated"))
+                } else {
+                    call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = "Error updating subscription"))
+                    return@patch
+                }
+            }
+
             get("/me") {
                 val principal = call.principal<JWTPrincipal>()
                 val email = principal!!.payload.getClaim("email").asString()
@@ -364,32 +391,6 @@ fun Application.userModule() {
                 }
             }
 
-            patch("update-subscription") {
-                val request = call.receive<UpdateSubscriptionRequest>()
-                val principal = call.principal<JWTPrincipal>()
-                val userId = principal!!.payload.getClaim("userId").asInt()
-                val newSubscription = request.newSubscription
-
-                val user = db.from(UserEntity).select().where { UserEntity.id eq userId }
-                    .map { it[UserEntity.id] }.firstOrNull()
-
-                if (user == null) {
-                    call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = "User not found, please check the user ID"))
-                    return@patch
-                }
-
-                val result = db.update(UserEntity) {
-                    where { it.id eq userId }
-                    set(it.subscription, newSubscription)
-                }
-
-                if (result > 0) {
-                    call.respond(HttpStatusCode.OK, UserResponse(success = true, data = "Subscription has been successfully updated"))
-                } else {
-                    call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = "Error updating subscription"))
-                    return@patch
-                }
-            }
         }
     }
 }
