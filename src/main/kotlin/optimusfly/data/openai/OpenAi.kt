@@ -19,7 +19,7 @@ class OpenAI(apiKey: String) {
             .url("https://api.openai.com/v1/completions")
             .post(RequestBody.create(mediaType, body))
             .addHeader("Content-Type", "application/json")
-            .addHeader("Authorization", "Bearer sk-2R2p6xKsYFPBIvsZRQF8lT3BlbkFJYbSOrf5di4D00yXcva8L")
+            .addHeader("Authorization", "Bearer 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")
             .build()
 
 
@@ -34,7 +34,7 @@ class OpenAI(apiKey: String) {
             .url("https://api.openai.com/v1/chat/completions")
             .post(RequestBody.create(mediaType, json))
             .addHeader("Content-Type", "application/json")
-            .addHeader("Authorization", "Bearer sk-2R2p6sxKYFPBIvsZRQF8lT3BlbkFJYbSOrf5di4D00yXcva8L")
+            .addHeader("Authorization", "Bearer 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")
             .build()
 
         return client.newCall(request).execute()
