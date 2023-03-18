@@ -22,7 +22,7 @@ class WhatsAppApi {
             .addHeader("Content-Type", "application/json")
             .addHeader(
                 "Authorization",
-                "Bearer EAAMZBu7GdAScBAOCTFnZCqo5qk6Rfnp5rpi6UdxVycNCfCSmZBBJXifUxaxZAUz9M5kvmUUzUW7EVSLGDXCyNKtSxtCXb64DGwsZCThvpLfCodUlg95e9x2xpGH6wR68a1CCKV29dtiG0PGxMuZCI2Y7Ev7Q3wEgM5sbNIx09j8vefNrXISvEZCbSNwq6e8X2P81sWOnq6od0WAYxh0ThPV"
+                "Bearer 2EAAMZBu7GdAScBAOCTFnZCqo5qk6Rfnp5rpi6UdxVycNCfCSmZBBJXifUxaxZAUz9M5kvmUUzUW7EVSLGDXCyNKtSxtCXb64DGwsZCThvpLfCodUlg95e9x2xpGH6wR68a1CCKV29dtiG0PGxMuZCI2Y7Ev7Q3wEgM5sbNIx09j8vefNrXISvEZCbSNwq6e8X2P81sWOnq6od0WAYxh0ThPV"
             )
             .build()
 
