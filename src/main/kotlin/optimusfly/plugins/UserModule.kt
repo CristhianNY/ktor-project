@@ -325,16 +325,6 @@ fun Application.userModule() {
                     return@patch
                 }
 
-
-                val oldPhoneNumberValue =
-                    db.from(PhoneNumberEntity).select().where { PhoneNumberEntity.userId eq userId }
-                        .map { it[PhoneNumberEntity.phoneNumber] }.firstOrNull()
-
-                if (oldPhoneNumberValue == null) {
-                    call.respond(HttpStatusCode.BadRequest, UserResponse(success = true, data = "Old phone number not found, please check the phone number"))
-                    return@patch
-                }
-
                 val result = db.update(PhoneNumberEntity) {
                     where { it.userId eq userId }
                     set(it.phoneNumber, newPhoneNumber)
