@@ -233,7 +233,10 @@ fun Application.userModule() {
                     .map { it[UserEntity.id] }.firstOrNull()
 
                 if (user == null) {
-                    call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = "User not found, please check the user ID"))
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        UserResponse(success = false, data = "User not found, please check the user ID")
+                    )
                     return@patch
                 }
 
@@ -243,9 +246,15 @@ fun Application.userModule() {
                 }
 
                 if (result > 0) {
-                    call.respond(HttpStatusCode.OK, UserResponse(success = true, data = "Subscription has been successfully updated"))
+                    call.respond(
+                        HttpStatusCode.OK,
+                        UserResponse(success = true, data = "Subscription has been successfully updated")
+                    )
                 } else {
-                    call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = "Error updating subscription"))
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        UserResponse(success = false, data = "Error updating subscription")
+                    )
                     return@patch
                 }
             }
@@ -320,12 +329,15 @@ fun Application.userModule() {
                 if (phoneNumberValue != null) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        UserResponse(success = false, data = "New phone number already exists, please try with another phone")
+                        UserResponse(
+                            success = false,
+                            data = "New phone number already exists, please try with another phone"
+                        )
                     )
                     return@patch
                 }
 
-                
+
                 val result = db.update(PhoneNumberEntity) {
                     where { it.userId eq userId }
                     set(it.phoneNumber, newPhoneNumber)
@@ -339,7 +351,10 @@ fun Application.userModule() {
                     )
                     sendWhatsappMessage(newPhoneNumber, this)
                 } else {
-                    call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = "Error updating phone number"))
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        UserResponse(success = false, data = "Error updating phone number")
+                    )
                     return@patch
                 }
             }
@@ -349,11 +364,11 @@ fun Application.userModule() {
                 val principal = call.principal<JWTPrincipal>()
                 val userId = principal!!.payload.getClaim("userId").asInt()
                 val phoneNumber = request.phoneNumber
-
-                sendWhatsappMessage(phoneNumber, this)
+                val phoneNumberFormatted = formatPhoneNumber(phoneNumber)
+                sendWhatsappMessage(phoneNumberFormatted, this)
 
                 val phoneNumberValue =
-                    db.from(PhoneNumberEntity).select().where { PhoneNumberEntity.phoneNumber eq phoneNumber }
+                    db.from(PhoneNumberEntity).select().where { PhoneNumberEntity.phoneNumber eq phoneNumberFormatted }
                         .map { it[PhoneNumberEntity.phoneNumber] }.firstOrNull()
 
 
@@ -361,6 +376,21 @@ fun Application.userModule() {
                     call.respond(
                         HttpStatusCode.BadRequest,
                         UserResponse(success = true, data = "PhoneNumber already exists, please try with another Phone")
+                    )
+                    return@post
+                }
+
+                val existingUserPhoneNumber =
+                    db.from(PhoneNumberEntity).select().where { PhoneNumberEntity.userId eq userId }
+                        .map { it[PhoneNumberEntity.phoneNumber] }.firstOrNull()
+
+                if (existingUserPhoneNumber != null) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        UserResponse(
+                            success = false,
+                            data = "User already has a registered phone number, cannot insert another one"
+                        )
                     )
                     return@post
                 }
@@ -385,6 +415,11 @@ fun Application.userModule() {
         }
     }
 }
+
+fun formatPhoneNumber(phoneNumber: String): String {
+    return phoneNumber.replace("-", "")
+}
+
 
 fun sendWhatsappMessage(phoneNumber: String, launch: PipelineContext<Unit, ApplicationCall>) {
 
