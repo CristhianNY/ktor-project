@@ -365,18 +365,26 @@ fun Application.userModule() {
                 val userId = principal!!.payload.getClaim("userId").asInt()
                 val phoneNumber = request.phoneNumber
                 val phoneNumberFormatted = formatPhoneNumber(phoneNumber)
+
                 sendWhatsappMessage(phoneNumberFormatted, this)
 
-                val phoneNumberValue =
+                val phoneNumberRecord =
                     db.from(PhoneNumberEntity).select().where { PhoneNumberEntity.phoneNumber eq phoneNumberFormatted }
-                        .map { it[PhoneNumberEntity.phoneNumber] }.firstOrNull()
+                        .map { Pair(it[PhoneNumberEntity.phoneNumber], it[PhoneNumberEntity.userId]) }.firstOrNull()
 
-
-                if (phoneNumberValue != null) {
-                    call.respond(
-                        HttpStatusCode.BadRequest,
-                        UserResponse(success = true, data = "PhoneNumber already exists, please try with another Phone")
-                    )
+                if (phoneNumberRecord != null) {
+                    val associatedUserId = phoneNumberRecord.second
+                    if (associatedUserId == userId) {
+                        call.respond(
+                            HttpStatusCode.BadRequest,
+                            UserResponse(success = false, data = "PhoneNumber is already associated with your account")
+                        )
+                    } else {
+                        call.respond(
+                            HttpStatusCode.BadRequest,
+                            UserResponse(success = false, data = "PhoneNumber already exists, please try with another Phone")
+                        )
+                    }
                     return@post
                 }
 
@@ -387,16 +395,13 @@ fun Application.userModule() {
                 if (existingUserPhoneNumber != null) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        UserResponse(
-                            success = false,
-                            data = "User already has a registered phone number, cannot insert another one"
-                        )
+                        UserResponse(success = false, data = "User already has a registered phone number, cannot insert another one")
                     )
                     return@post
                 }
 
                 val result = db.insert(PhoneNumberEntity) {
-                    set(it.phoneNumber, request.phoneNumber)
+                    set(it.phoneNumber, phoneNumberFormatted)
                     set(it.userId, userId)
                 }
 
@@ -405,9 +410,10 @@ fun Application.userModule() {
                         HttpStatusCode.OK, UserResponse(success = true, data = "values has been successfully inserted")
                     )
                 } else {
-                    call.respond(HttpStatusCode.BadRequest, UserResponse(success = true, data = "Error Inserting"))
+                    call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = "Error Inserting"))
                 }
             }
+
         }
     }
 }
