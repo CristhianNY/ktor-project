@@ -401,9 +401,6 @@ fun Application.userModule() {
                 }
 
                 if (result == SUCCESS_INSERT) {
-                    // sen successfully response to the client
-
-                    call.respond(HttpStatusCode.OK)
                     call.respond(
                         HttpStatusCode.OK, UserResponse(success = true, data = "values has been successfully inserted")
                     )
@@ -411,7 +408,6 @@ fun Application.userModule() {
                     call.respond(HttpStatusCode.BadRequest, UserResponse(success = true, data = "Error Inserting"))
                 }
             }
-
         }
     }
 }
