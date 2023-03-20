@@ -366,7 +366,15 @@ fun Application.userModule() {
                 val phoneNumber = request.phoneNumber
                 val phoneNumberFormatted = formatPhoneNumber(phoneNumber)
 
-                sendWhatsappMessage(phoneNumberFormatted, this)
+                val userExists =
+                    db.from(UserEntity).select(UserEntity.id).where { UserEntity.id eq userId }.totalRecords > 0
+                if (!userExists) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        UserResponse(success = false, data = "User not found")
+                    )
+                    return@post
+                }
 
                 val phoneNumberRecord =
                     db.from(PhoneNumberEntity).select().where { PhoneNumberEntity.phoneNumber eq phoneNumberFormatted }
@@ -382,7 +390,10 @@ fun Application.userModule() {
                     } else {
                         call.respond(
                             HttpStatusCode.BadRequest,
-                            UserResponse(success = false, data = "PhoneNumber already exists, please try with another Phone")
+                            UserResponse(
+                                success = false,
+                                data = "PhoneNumber already exists, please try with another Phone"
+                            )
                         )
                     }
                     return@post
@@ -395,7 +406,10 @@ fun Application.userModule() {
                 if (existingUserPhoneNumber != null) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        UserResponse(success = false, data = "User already has a registered phone number, cannot insert another one")
+                        UserResponse(
+                            success = false,
+                            data = "User already has a registered phone number, cannot insert another one"
+                        )
                     )
                     return@post
                 }
@@ -409,6 +423,7 @@ fun Application.userModule() {
                     call.respond(
                         HttpStatusCode.OK, UserResponse(success = true, data = "values has been successfully inserted")
                     )
+                    sendWhatsappMessage(phoneNumberFormatted, this)
                 } else {
                     call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = "Error Inserting"))
                 }
