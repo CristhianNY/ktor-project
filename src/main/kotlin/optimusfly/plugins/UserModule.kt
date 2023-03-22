@@ -402,7 +402,7 @@ fun Application.userModule() {
                     db.from(PhoneNumberEntity).select().where { PhoneNumberEntity.userId eq userId }
                         .map { it[PhoneNumberEntity.phoneNumber] }.firstOrNull()
 
-                if (existingUserPhoneNumber != null && existingUserPhoneNumber == "") {
+                if (existingUserPhoneNumber != null && existingUserPhoneNumber != "") {
                     call.respond(
                         HttpStatusCode.BadRequest,
                         UserResponse(
