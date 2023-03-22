@@ -330,7 +330,7 @@ fun Application.userModule() {
                 }
 
                 if (newPhoneNumber.isNotBlank()) {
-                    val result = if (userHasPhoneNumber == null) {
+                    val result = if (userHasPhoneNumber != null) {
                         db.update(PhoneNumberEntity) {
                             where { it.userId eq userId }
                             set(it.phoneNumber, newPhoneNumber)
