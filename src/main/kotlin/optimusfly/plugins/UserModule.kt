@@ -228,8 +228,8 @@ fun Application.userModule() {
                 val userId = principal!!.payload.getClaim("userId").asInt()
                 val newSubscription = request.newSubscription
 
-                val user = db.from(UserEntity).select().where { UserEntity.id eq userId }
-                    .map { it[UserEntity.id] }.firstOrNull()
+                val user = db.from(UserEntity).select().where { UserEntity.id eq userId }.map { it[UserEntity.id] }
+                    .firstOrNull()
 
                 if (user == null) {
                     call.respond(
@@ -251,8 +251,7 @@ fun Application.userModule() {
                     )
                 } else {
                     call.respond(
-                        HttpStatusCode.BadRequest,
-                        UserResponse(success = false, data = "Error updating subscription")
+                        HttpStatusCode.BadRequest, UserResponse(success = false, data = "Error updating subscription")
                     )
                     return@patch
                 }
@@ -261,56 +260,48 @@ fun Application.userModule() {
             get("/me") {
                 val principal = call.principal<JWTPrincipal>()
                 val email = principal!!.payload.getClaim("email").asString()
-                val user = db.from(UserEntity)
-                    .leftJoin(PhoneNumberEntity, on = UserEntity.id eq PhoneNumberEntity.userId)
-                    .select()
-                    .where { UserEntity.email eq email }
-                    .map {
-                        UserModel(
-                            it[UserEntity.id],
-                            it[UserEntity.name],
-                            it[UserEntity.lastName],
-                            it[UserEntity.email],
-                            it[UserEntity.password],
-                            it[UserEntity.subscription],
-                            it[PhoneNumberEntity.phoneNumber]
-                        )
-                    }
-                    .firstOrNull()
+                val user =
+                    db.from(UserEntity).leftJoin(PhoneNumberEntity, on = UserEntity.id eq PhoneNumberEntity.userId)
+                        .select().where { UserEntity.email eq email }.map {
+                            UserModel(
+                                it[UserEntity.id],
+                                it[UserEntity.name],
+                                it[UserEntity.lastName],
+                                it[UserEntity.email],
+                                it[UserEntity.password],
+                                it[UserEntity.subscription],
+                                it[PhoneNumberEntity.phoneNumber]
+                            )
+                        }.firstOrNull()
 
                 user?.let {
                     call.respond(it)
                 } ?: call.respond(
-                    HttpStatusCode.InternalServerError,
-                    UserResponse(success = true, data = "Error Inserting")
+                    HttpStatusCode.InternalServerError, UserResponse(success = true, data = "Error Inserting")
                 )
             }
 
             post("/update-phone") {
                 val principal = call.principal<JWTPrincipal>()
                 val email = principal!!.payload.getClaim("email").asString()
-                val user = db.from(UserEntity)
-                    .leftJoin(PhoneNumberEntity, on = UserEntity.id eq PhoneNumberEntity.userId)
-                    .select()
-                    .where { UserEntity.email eq email }
-                    .map {
-                        UserModel(
-                            it[UserEntity.id],
-                            it[UserEntity.name],
-                            it[UserEntity.lastName],
-                            it[UserEntity.email],
-                            it[UserEntity.password],
-                            it[UserEntity.subscription],
-                            it[PhoneNumberEntity.phoneNumber]
-                        )
-                    }
-                    .firstOrNull()
+                val user =
+                    db.from(UserEntity).leftJoin(PhoneNumberEntity, on = UserEntity.id eq PhoneNumberEntity.userId)
+                        .select().where { UserEntity.email eq email }.map {
+                            UserModel(
+                                it[UserEntity.id],
+                                it[UserEntity.name],
+                                it[UserEntity.lastName],
+                                it[UserEntity.email],
+                                it[UserEntity.password],
+                                it[UserEntity.subscription],
+                                it[PhoneNumberEntity.phoneNumber]
+                            )
+                        }.firstOrNull()
 
                 user?.let {
                     call.respond(it)
                 } ?: call.respond(
-                    HttpStatusCode.InternalServerError,
-                    UserResponse(success = true, data = "Error Inserting")
+                    HttpStatusCode.InternalServerError, UserResponse(success = true, data = "Error Inserting")
                 )
             }
 
@@ -327,32 +318,37 @@ fun Application.userModule() {
 
                 if (phoneNumberValue != null) {
                     call.respond(
-                        HttpStatusCode.BadRequest,
-                        UserResponse(
-                            success = false,
-                            data = "New phone number already exists, please try with another phone"
+                        HttpStatusCode.BadRequest, UserResponse(
+                            success = false, data = "New phone number already exists, please try with another phone"
                         )
                     )
                     return@patch
                 }
 
 
-                val result = db.update(PhoneNumberEntity) {
-                    where { it.userId eq userId }
-                    set(it.phoneNumber, newPhoneNumber)
-                    set(it.userId, userId)
-                }
+                if (newPhoneNumber.isNotBlank()) {
+                    val result = db.update(PhoneNumberEntity) {
+                        where { it.userId eq userId }
+                        set(it.phoneNumber, newPhoneNumber)
+                        set(it.userId, userId)
+                    }
 
-                if (result > 0) {
-                    call.respond(
-                        HttpStatusCode.OK,
-                        UserResponse(success = true, data = "Phone number has been successfully updated")
-                    )
-                    sendWhatsappMessage(newPhoneNumber, this)
+                    if (result > 0) {
+                        call.respond(
+                            HttpStatusCode.OK,
+                            UserResponse(success = true, data = "Phone number has been successfully updated")
+                        )
+                        sendWhatsappMessage(newPhoneNumber, this)
+                    } else {
+                        call.respond(
+                            HttpStatusCode.BadRequest,
+                            UserResponse(success = false, data = "Error updating phone number")
+                        )
+                        return@patch
+                    }
                 } else {
                     call.respond(
-                        HttpStatusCode.BadRequest,
-                        UserResponse(success = false, data = "Error updating phone number")
+                        HttpStatusCode.BadRequest, UserResponse(success = false, data = "Error updating phone number")
                     )
                     return@patch
                 }
@@ -369,8 +365,7 @@ fun Application.userModule() {
                     db.from(UserEntity).select(UserEntity.id).where { UserEntity.id eq userId }.totalRecords > 0
                 if (!userExists) {
                     call.respond(
-                        HttpStatusCode.BadRequest,
-                        UserResponse(success = false, data = "User not found")
+                        HttpStatusCode.BadRequest, UserResponse(success = false, data = "User not found")
                     )
                     return@post
                 }
@@ -388,10 +383,8 @@ fun Application.userModule() {
                         )
                     } else {
                         call.respond(
-                            HttpStatusCode.BadRequest,
-                            UserResponse(
-                                success = false,
-                                data = "PhoneNumber already exists, please try with another Phone"
+                            HttpStatusCode.BadRequest, UserResponse(
+                                success = false, data = "PhoneNumber already exists, please try with another Phone"
                             )
                         )
                     }
@@ -404,8 +397,7 @@ fun Application.userModule() {
 
                 if (existingUserPhoneNumber != null && existingUserPhoneNumber != "") {
                     call.respond(
-                        HttpStatusCode.BadRequest,
-                        UserResponse(
+                        HttpStatusCode.BadRequest, UserResponse(
                             success = false,
                             data = "User already has a registered phone number, cannot insert another one"
                         )
