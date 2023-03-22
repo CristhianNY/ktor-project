@@ -316,6 +316,10 @@ fun Application.userModule() {
                     db.from(PhoneNumberEntity).select().where { PhoneNumberEntity.phoneNumber eq newPhoneNumber }
                         .map { it[PhoneNumberEntity.phoneNumber] }.firstOrNull()
 
+                val userHasPhoneNumber =
+                    db.from(PhoneNumberEntity).select().where { PhoneNumberEntity.userId eq userId }
+                        .map { it[PhoneNumberEntity.phoneNumber] }.firstOrNull()
+
                 if (phoneNumberValue != null) {
                     call.respond(
                         HttpStatusCode.BadRequest, UserResponse(
@@ -325,12 +329,18 @@ fun Application.userModule() {
                     return@patch
                 }
 
-
                 if (newPhoneNumber.isNotBlank()) {
-                    val result = db.update(PhoneNumberEntity) {
-                        where { it.userId eq userId }
-                        set(it.phoneNumber, newPhoneNumber)
-                        set(it.userId, userId)
+                    val result = if (userHasPhoneNumber == null) {
+                        db.update(PhoneNumberEntity) {
+                            where { it.userId eq userId }
+                            set(it.phoneNumber, newPhoneNumber)
+                            set(it.userId, userId)
+                        }
+                    } else {
+                        db.insert(PhoneNumberEntity) {
+                            set(it.phoneNumber, newPhoneNumber)
+                            set(it.userId, userId)
+                        }
                     }
 
                     if (result > 0) {
