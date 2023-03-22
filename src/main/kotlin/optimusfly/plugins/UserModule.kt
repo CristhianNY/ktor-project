@@ -11,7 +11,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import optimusfly.data.db.DatabaseConnection
 import optimusfly.data.openai.OpenAI
@@ -403,7 +402,7 @@ fun Application.userModule() {
                     db.from(PhoneNumberEntity).select().where { PhoneNumberEntity.userId eq userId }
                         .map { it[PhoneNumberEntity.phoneNumber] }.firstOrNull()
 
-                if (existingUserPhoneNumber != null) {
+                if (existingUserPhoneNumber != null && existingUserPhoneNumber == "") {
                     call.respond(
                         HttpStatusCode.BadRequest,
                         UserResponse(
