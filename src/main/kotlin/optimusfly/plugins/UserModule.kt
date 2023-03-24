@@ -21,6 +21,9 @@ import optimusfly.domain.model.dialogflowcx.cxrequest.DialogCXRequestModel
 import optimusfly.domain.model.dialogflowcx.cxrequestv3.CxRequestV3Model
 import optimusfly.domain.model.gpt.openai.GptResponseModel
 import optimusfly.domain.model.gpt.openai.toDialogFlowResponseCXModel
+import optimusfly.domain.model.map_errors.ErrorMapper
+import optimusfly.domain.model.map_errors.ErrorMapper.GENERIC_ERROR
+import optimusfly.domain.model.map_errors.ErrorMapper.PHONE_NUMBER_REQUIRED
 import optimusfly.domain.model.user.*
 import optimusfly.domain.model.whatsapp.send_welcome.FacebookLanguage
 import optimusfly.domain.model.whatsapp.send_welcome.FacebookTemplate
@@ -323,7 +326,7 @@ fun Application.userModule() {
                 if (phoneNumberValue != null) {
                     call.respond(
                         HttpStatusCode.BadRequest, UserResponse(
-                            success = false, data = "New phone number already exists, please try with another phone"
+                            success = false, data = ErrorMapper.NEW_PHONE_NUMBER_ALREADY_REGISTERED_WITH_OTHER_USER
                         )
                     )
                     return@patch
@@ -354,14 +357,14 @@ fun Application.userModule() {
                             HttpStatusCode.BadRequest,
                             UserResponse(
                                 success = false,
-                                data = "01",
+                                data = GENERIC_ERROR,
                             )
                         )
                         return@patch
                     }
                 } else {
                     call.respond(
-                        HttpStatusCode.BadRequest, UserResponse(success = false, data = "Error updating phone number")
+                        HttpStatusCode.BadRequest, UserResponse(success = false, data = PHONE_NUMBER_REQUIRED)
                     )
                     return@patch
                 }
