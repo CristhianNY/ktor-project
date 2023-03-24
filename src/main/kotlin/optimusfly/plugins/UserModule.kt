@@ -24,6 +24,7 @@ import optimusfly.domain.model.gpt.openai.toDialogFlowResponseCXModel
 import optimusfly.domain.model.map_errors.ErrorMapper
 import optimusfly.domain.model.map_errors.ErrorMapper.GENERIC_ERROR
 import optimusfly.domain.model.map_errors.ErrorMapper.PHONE_NUMBER_REQUIRED
+import optimusfly.domain.model.map_errors.ErrorMapper.USER_NOT_FOUND
 import optimusfly.domain.model.user.*
 import optimusfly.domain.model.whatsapp.send_welcome.FacebookLanguage
 import optimusfly.domain.model.whatsapp.send_welcome.FacebookTemplate
@@ -206,18 +207,17 @@ fun Application.userModule() {
             }.firstOrNull()
 
             if (user == null) {
-                call.respond(
-                    HttpStatusCode.BadRequest, UserResponse(success = false, data = "Invalid email or password")
-                )
+                val error = ErrorMapper.INVALID_EMAIL_OR_PASSWORD
+                call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = error))
                 return@post
             }
 
             val doesPasswordMatch = BCrypt.checkpw(password, user.password)
 
             if (!doesPasswordMatch) {
-                call.respond(
-                    HttpStatusCode.Unauthorized, UserResponse(success = false, data = "Invalid email or password")
-                )
+                val error = ErrorMapper.INVALID_EMAIL_OR_PASSWORD
+                call.respond(HttpStatusCode.Unauthorized, UserResponse(success = false, data = error))
+                return@post
             }
 
             val token = tokenManager.generateJWTToken(user)
@@ -237,7 +237,7 @@ fun Application.userModule() {
                 if (user == null) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        UserResponse(success = false, data = "User not found, please check the user ID")
+                        UserResponse(success = false, data = USER_NOT_FOUND)
                     )
                     return@patch
                 }
@@ -280,7 +280,7 @@ fun Application.userModule() {
                 user?.let {
                     call.respond(it)
                 } ?: call.respond(
-                    HttpStatusCode.InternalServerError, UserResponse(success = true, data = "Error Inserting")
+                    HttpStatusCode.InternalServerError, UserResponse(success = true, data = "Error Getting Data")
                 )
             }
 
@@ -380,29 +380,23 @@ fun Application.userModule() {
                 val userExists =
                     db.from(UserEntity).select(UserEntity.id).where { UserEntity.id eq userId }.totalRecords > 0
                 if (!userExists) {
-                    call.respond(
-                        HttpStatusCode.BadRequest, UserResponse(success = false, data = "User not found")
-                    )
+                    val error = ErrorMapper.USER_NOT_FOUND
+                    call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = error))
                     return@post
                 }
 
-                val phoneNumberRecord =
-                    db.from(PhoneNumberEntity).select().where { PhoneNumberEntity.phoneNumber eq phoneNumberFormatted }
-                        .map { Pair(it[PhoneNumberEntity.phoneNumber], it[PhoneNumberEntity.userId]) }.firstOrNull()
+                val phoneNumberRecord = db.from(PhoneNumberEntity).select()
+                    .where { PhoneNumberEntity.phoneNumber eq phoneNumberFormatted }
+                    .map { Pair(it[PhoneNumberEntity.phoneNumber], it[PhoneNumberEntity.userId]) }.firstOrNull()
 
                 if (phoneNumberRecord != null) {
                     val associatedUserId = phoneNumberRecord.second
                     if (associatedUserId == userId) {
-                        call.respond(
-                            HttpStatusCode.BadRequest,
-                            UserResponse(success = false, data = "PhoneNumber is already associated with your account")
-                        )
+                        val error = ErrorMapper.PHONE_ALREADY_ASSOCIATED
+                        call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = error))
                     } else {
-                        call.respond(
-                            HttpStatusCode.BadRequest, UserResponse(
-                                success = false, data = "PhoneNumber already exists, please try with another Phone"
-                            )
-                        )
+                        val error = ErrorMapper.PHONE_ALREADY_EXISTS
+                        call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = error))
                     }
                     return@post
                 }
@@ -412,12 +406,8 @@ fun Application.userModule() {
                         .map { it[PhoneNumberEntity.phoneNumber] }.firstOrNull()
 
                 if (existingUserPhoneNumber != null && existingUserPhoneNumber != "") {
-                    call.respond(
-                        HttpStatusCode.BadRequest, UserResponse(
-                            success = false,
-                            data = "User already has a registered phone number, cannot insert another one"
-                        )
-                    )
+                    val error = ErrorMapper.PHONE_ALREADY_REGISTERED
+                    call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = error))
                     return@post
                 }
 
@@ -427,15 +417,14 @@ fun Application.userModule() {
                 }
 
                 if (result == SUCCESS_INSERT) {
-                    call.respond(
-                        HttpStatusCode.OK, UserResponse(success = true, data = "values has been successfully inserted")
-                    )
+                    val message = "values has been successfully inserted"
+                    call.respond(HttpStatusCode.OK, UserResponse(success = true, data = message))
                     sendWhatsappMessage(phoneNumberFormatted, this)
                 } else {
-                    call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = "Error Inserting"))
+                    val error = ErrorMapper.ERROR_INSERTING
+                    call.respond(HttpStatusCode.BadRequest, UserResponse(success = false, data = error))
                 }
             }
-
         }
     }
 }
