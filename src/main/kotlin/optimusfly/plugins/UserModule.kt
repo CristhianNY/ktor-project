@@ -19,8 +19,10 @@ import optimusfly.data.user.UserEntity
 import optimusfly.data.whatsappApi.WhatsAppApi
 import optimusfly.domain.model.dialogflowcx.cxrequest.DialogCXRequestModel
 import optimusfly.domain.model.dialogflowcx.cxrequestv3.CxRequestV3Model
+import optimusfly.domain.model.error.GenericError
 import optimusfly.domain.model.gpt.openai.GptResponseModel
 import optimusfly.domain.model.gpt.openai.toDialogFlowResponseCXModel
+import optimusfly.domain.model.map_errors.ErrorMapper.GENERIC_ERROR
 import optimusfly.domain.model.user.*
 import optimusfly.domain.model.whatsapp.send_welcome.FacebookLanguage
 import optimusfly.domain.model.whatsapp.send_welcome.FacebookTemplate
@@ -352,7 +354,11 @@ fun Application.userModule() {
                     } else {
                         call.respond(
                             HttpStatusCode.BadRequest,
-                            UserResponse(success = false, data = "Error updating phone number")
+                            GenericError(
+                                success = false,
+                                data = "Error updating phone number",
+                                customErrorCode = GENERIC_ERROR
+                            )
                         )
                         return@patch
                     }
