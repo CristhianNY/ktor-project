@@ -82,7 +82,7 @@ fun Application.whatsappModule() {
                             mapOf("role" to "user", "content" to "$messagePrompt")
                         )
 
-                        val response: Response = openai.chatCompletion("gpt-3.5-turbo", messages)
+                        val response: Response = openai.chatCompletion("gpt-4", messages)
 
                         val gson = Gson()
                         gptAnswer = gson.fromJson(response.body!!.string(), ChatGptResponseModel::class.java)
