@@ -22,7 +22,7 @@ class WhatsAppApi {
             .addHeader("Content-Type", "application/json")
             .addHeader(
                 "Authorization",
-                "Bearer 2EAAMZBu7GdAScBAOCTFnZCqo5qk6Rfnp5rpi6UdxVycNCfCSmZBBJXifUxaxZAUz9M5kvmUUzUW7EVSLGDXCyNKtSxtCXb64DGwsZCThvpLfCodUlg95e9x2xpGH6wR68a1CCKV29dtiG0PGxMuZCI2Y7Ev7Q3wEgM5sbNIx09j8vefNrXISvEZCbSNwq6e8X2P81sWOnq6od0WAYxh0ThPV"
+                "Bearer EAAMZBu7GdAScBAJrZCFfk6jbk1B7VHLySFlPZAV9CYYHcZCvNbfUhqmPoERH9fZAjDZAKM3b7vdZCZA4ZCWu8ZC3IZBB15rxn8TDqmPEaTxRwTzfpsO1VILbJAn9ACZCYS5rfDy0587t0sfkAiDAkcb2BFl1ojZCryYKnJhH4hpavuoS3qFCo0ZBY6JYRzKMJ5A5GTZCV1Srvta3wNMqQZDZD"
             )
             .build()
 
@@ -41,7 +41,7 @@ class WhatsAppApi {
             .addHeader("Content-Type", "application/json")
             .addHeader(
                 "Authorization",
-                "Bearer EAAMZBu7GdAScBAOCTFnZCqo5qk6Rfnp5rpi6UdxVycNCfCSmZBBJXifUxaxZAUz9M5kvmUUzUW7EVSLGDXCyNKtSxtCXb64DGwsZCThvpLfCodUlg95e9x2xpGH6wR68a1CCKV29dtiG0PGxMuZCI2Y7Ev7Q3wEgM5sbNIx09j8vefNrXISvEZCbSNwq6e8X2P81sWOnq6od0WAYxh0ThPV"
+                "Bearer EAAMZBu7GdAScBAJrZCFfk6jbk1B7VHLySFlPZAV9CYYHcZCvNbfUhqmPoERH9fZAjDZAKM3b7vdZCZA4ZCWu8ZC3IZBB15rxn8TDqmPEaTxRwTzfpsO1VILbJAn9ACZCYS5rfDy0587t0sfkAiDAkcb2BFl1ojZCryYKnJhH4hpavuoS3qFCo0ZBY6JYRzKMJ5A5GTZCV1Srvta3wNMqQZDZD"
             )
             .build()
 
