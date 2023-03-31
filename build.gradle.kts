@@ -48,6 +48,7 @@ dependencies {
     implementation("io.ktor:ktor-client-jvm:$ktor_version")
     implementation ("com.squareup.okhttp3:okhttp:4.9.0")
     implementation("com.google.code.gson:gson:2.8.6")
+    implementation("io.ktor:ktor-server-html-builder:$ktor_version")
 
 
 
