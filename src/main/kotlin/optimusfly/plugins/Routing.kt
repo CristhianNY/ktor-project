@@ -41,6 +41,12 @@ fun Application.configureRouting() {
                             li { +"Interfaz de usuario intuitiva y fácil de usar." }
                             li { +"Soporte para múltiples idiomas y conversaciones simultáneas." }
                             li { +"Potente análisis de texto para proporcionar respuestas adecuadas a preguntas complejas." }
+                            li {
+                                +"Lea nuestras "
+                                a(href = "/politicas-de-privacidad") { +"políticas de privacidad" }
+                                +" antes de comenzar a usar la aplicación."
+                            }
+
                         }
                         h2 { +"¿Cómo comenzar?" }
                         p { +"Para comenzar a utilizar SabioGpt, siga estos simples pasos:" }
