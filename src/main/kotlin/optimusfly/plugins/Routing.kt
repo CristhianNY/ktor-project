@@ -54,6 +54,13 @@ fun Application.configureRouting() {
                     div(classes = "container mt-5") {
                         p { +"Si necesita ayuda o tiene preguntas, no dude en ponerse en contacto con nuestro equipo de soporte." }
                     }
+
+                    div(classes = "container") {
+                        hr {}
+                        p {
+                            +"Última actualización: 03 de Abril de 2023"
+                        }
+                    }
                 }
             }
         }
@@ -128,6 +135,11 @@ fun Application.configureRouting() {
                                 +"Nuestra plataforma puede contener enlaces a sitios web de terceros. No somos responsables de las políticas de privacidad, prácticas o contenido de dichos sitios web. Le recomendamos que revise las políticas de privacidad de cada sitio web que visite."
                             }
 
+                            h2 { +"Consentimiento de privacidad" }
+                            p {
+                                +"Al utilizar nuestra plataforma, usted acepta y consiente que recolectemos, almacenemos y usemos su información personal de acuerdo con nuestras políticas de privacidad."
+                            }
+
                             h2 { +"Cambios en nuestras políticas de privacidad" }
                             p {
                                 +"Podemos actualizar nuestras políticas de privacidad periódicamente. Publicaremos cualquier cambio en esta página y, si los cambios son significativos, proporcionaremos un aviso más destacado. Le recomendamos que revise nuestras políticas de privacidad periódicamente para estar informado sobre cómo protegemos su información."
@@ -145,7 +157,7 @@ fun Application.configureRouting() {
                 }
             }
         }
-        
+
         get("/fileDownload") {
             val file = File("./files/saray.jpeg")
             call.response.header(
