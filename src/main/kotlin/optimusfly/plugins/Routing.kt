@@ -54,13 +54,6 @@ fun Application.configureRouting() {
                     div(classes = "container mt-5") {
                         p { +"Si necesita ayuda o tiene preguntas, no dude en ponerse en contacto con nuestro equipo de soporte." }
                     }
-
-                    div(classes = "container") {
-                        hr {}
-                        p {
-                            +"Última actualización: 03 de Abril de 2023"
-                        }
-                    }
                 }
             }
         }
@@ -151,6 +144,14 @@ fun Application.configureRouting() {
                             ul {
                                 li { +"Correo electrónico: soporte@sabiogpt.com" }
                                 li { +"Teléfono: +1 (123) 456-7890" }
+                            }
+
+
+                            div(classes = "container") {
+                                hr {}
+                                p {
+                                    +"Última actualización: 03 de Abril de 2023"
+                                }
                             }
                         }
                     }
