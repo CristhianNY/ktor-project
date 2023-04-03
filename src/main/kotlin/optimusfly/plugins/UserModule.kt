@@ -30,6 +30,7 @@ import optimusfly.domain.model.whatsapp.send_welcome.FacebookLanguage
 import optimusfly.domain.model.whatsapp.send_welcome.FacebookTemplate
 import optimusfly.domain.model.whatsapp.send_welcome.MessageTemplate
 import optimusfly.utils.TokenManager
+import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import org.mindrot.jbcrypt.BCrypt
 import java.io.IOException
@@ -120,7 +121,7 @@ fun Application.userModule() {
         }
 
         post("register-user") {
-            val request = call.receive<UserRequest>()
+            val request: UserRequest = call.receive<UserRequest>()
 
             val email = request.email.toString()
             val password = request.hashedPassword()
@@ -426,13 +427,103 @@ fun Application.userModule() {
                 }
             }
         }
+        post("/login-with-id-token") {
+            val userCredential = call.receive<UserCredentialsWithToken>()
+
+            val email = userCredential.email.toString()
+            val idToken = userCredential.idToken
+
+            val user = db.from(UserEntity).select().where {
+                UserEntity.email eq email
+            }.map {
+                val id = it[UserEntity.id]
+                val email = it[UserEntity.email]!!
+                val idToken = it[UserEntity.idToken]!!
+                optimusfly.bff.model.UserModel(id, email, idToken)
+            }.firstOrNull()
+
+            if (user == null) {
+                registerUserFromLogin(db, userCredential, call, this, tokenManager)
+            }
+
+            val doesIdTokenMatch = BCrypt.checkpw(idToken, user?.password)
+
+            if (!doesIdTokenMatch) {
+                val error = ErrorMapper.INVALID_EMAIL_OR_PASSWORD
+                call.respond(HttpStatusCode.Unauthorized, UserResponse(success = false, data = error))
+                return@post
+            }
+
+            generateJWTToken(tokenManager, call, this, user)
+        }
+
     }
+
 }
 
 fun formatPhoneNumber(phoneNumber: String): String {
     return phoneNumber.replace("-", "")
 }
 
+fun registerUserFromLogin(
+    db: Database,
+    credentials: UserCredentialsWithToken,
+    call: ApplicationCall,
+    launch: PipelineContext<Unit, ApplicationCall>,
+    tokenManager: TokenManager
+) {
+
+    launch.launch {
+        val email = credentials.email.toString()
+        val idTokenHashed = credentials.hashedIdToken()
+
+        val user = db.from(UserEntity).select().where { UserEntity.email eq email }.map { it[UserEntity.email] }
+            .firstOrNull()
+
+
+        if (user != null) {
+            return@launch
+        }
+
+        val result = db.insert(UserEntity) {
+            set(it.name, credentials.name)
+            set(it.lastName, credentials.lastName)
+            set(it.email, credentials.email)
+            set(it.password, idTokenHashed)
+            set(it.idToken, idTokenHashed)
+        }
+
+        if (result == SUCCESS_INSERT) {
+
+            val userInserted = db.from(UserEntity).select().where {
+                UserEntity.email eq email
+            }.map {
+                val id = it[UserEntity.id]
+                val email = it[UserEntity.email]!!
+                val idToken = it[UserEntity.idToken]!!
+                optimusfly.bff.model.UserModel(id, email, idToken)
+            }.firstOrNull()
+            generateJWTToken(tokenManager, call, launch, userInserted)
+        } else {
+            call.respond(HttpStatusCode.BadRequest, UserResponse(success = true, data = "Error Inserting Registering"))
+        }
+    }
+}
+
+fun generateJWTToken(
+    tokenManager: TokenManager,
+    call: ApplicationCall,
+    pipelineContext: PipelineContext<Unit, ApplicationCall>,
+    user: optimusfly.bff.model.UserModel?
+) {
+    pipelineContext.launch {
+        user?.let { user ->
+            val token = tokenManager.generateJWTToken(user)
+            call.respond(HttpStatusCode.OK, UserResponse(success = true, data = token))
+
+        }
+    }
+}
 
 fun sendWhatsappMessage(phoneNumber: String, launch: PipelineContext<Unit, ApplicationCall>) {
 
