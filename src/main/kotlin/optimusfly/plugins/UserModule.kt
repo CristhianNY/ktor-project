@@ -52,8 +52,9 @@ fun Application.userModule() {
                     val email = it[UserEntity.email]
                     val password = it[UserEntity.password]
                     val subscription = it[UserEntity.subscription]
+                    val credit = it[UserEntity.credits]
 
-                    UserModel(id, name, lasName, email, password, subscription ?: 0, phoneNumber = "")
+                    UserModel(id, name, lasName, email, password, subscription ?: 0, phoneNumber = "", credit)
 
                 }
                 call.respond(users)
@@ -330,7 +331,9 @@ fun Application.userModule() {
                                 it[UserEntity.email],
                                 it[UserEntity.password],
                                 it[UserEntity.subscription],
-                                it[PhoneNumberEntity.phoneNumber]
+                                it[PhoneNumberEntity.phoneNumber],
+                                it[UserEntity.credits]
+
                             )
                         }.firstOrNull()
 
@@ -354,7 +357,8 @@ fun Application.userModule() {
                                 it[UserEntity.email],
                                 it[UserEntity.password],
                                 it[UserEntity.subscription],
-                                it[PhoneNumberEntity.phoneNumber]
+                                it[PhoneNumberEntity.phoneNumber],
+                                it[UserEntity.credits]
                             )
                         }.firstOrNull()
 
@@ -552,7 +556,6 @@ fun Application.userModule() {
             val token = tokenManager.generateJWTToken(userFound)
             call.respond(HttpStatusCode.OK, UserResponse(success = true, data = token))
         }
-
 
 
     }

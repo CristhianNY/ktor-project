@@ -10,5 +10,6 @@ data class UserModel(
     val email: String?,
     val password: String?,
     val subscription: Int?,
-    val phoneNumber: String?
+    val phoneNumber: String?,
+    val credit: Int?
 )
