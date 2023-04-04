@@ -228,6 +228,60 @@ fun Application.userModule() {
         }
 
         authenticate {
+
+            patch("add-credits") {
+                val request = call.receive<AddCreditRequest>()
+                val principal = call.principal<JWTPrincipal>()
+                val credit = request.credit
+                val email = principal!!.payload.getClaim("email").asString()
+
+                val user = db.from(UserEntity).select().where {
+                    UserEntity.email eq email
+                }.map {
+                    val id = it[UserEntity.id]
+                    val email = it[UserEntity.email]!!
+                    val idToken = it[UserEntity.idToken]!!
+                    val password = it[UserEntity.password]
+                    val credits = it[UserEntity.credits]
+                    optimusfly.bff.model.UserModel(id, email, password, idToken, credits)
+                }.firstOrNull()
+
+                if (user == null) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        UserResponse(success = false, data = USER_NOT_FOUND)
+                    )
+                    return@patch
+                }
+
+                val result = db.update(UserEntity) {
+                    where { it.email eq email }
+                    set(it.credits, user.credits?.plus(credit))
+                }
+
+                val userUpdated = db.from(UserEntity).select().where {
+                    UserEntity.email eq email
+                }.map {
+                    val id = it[UserEntity.id]
+                    val email = it[UserEntity.email]!!
+                    val idToken = it[UserEntity.idToken]!!
+                    val password = it[UserEntity.password]
+                    val credits = it[UserEntity.credits]
+                    optimusfly.bff.model.UserModel(id, email, password, idToken, credits)
+                }.firstOrNull()
+                if (result > 0) {
+                    call.respond(
+                        HttpStatusCode.OK,
+                        UserResponse(success = true, data = userUpdated?.credits)
+                    )
+                } else {
+                    call.respond(
+                        HttpStatusCode.BadRequest, UserResponse(success = false, data = "Error updating subscription")
+                    )
+                    return@patch
+                }
+            }
+
             patch("update-subscription") {
                 val request = call.receive<UpdateSubscriptionRequest>()
                 val principal = call.principal<JWTPrincipal>()
@@ -499,59 +553,7 @@ fun Application.userModule() {
             call.respond(HttpStatusCode.OK, UserResponse(success = true, data = token))
         }
 
-        patch("add-credits") {
-            val request = call.receive<AddCreditRequest>()
-            val principal = call.principal<JWTPrincipal>()
-            val userId = principal!!.payload.getClaim("userId").asInt()
-            val credit = request.credit
-            val email = principal!!.payload.getClaim("email").asString()
 
-            val user = db.from(UserEntity).select().where {
-                UserEntity.email eq email
-            }.map {
-                val id = it[UserEntity.id]
-                val email = it[UserEntity.email]!!
-                val idToken = it[UserEntity.idToken]!!
-                val password = it[UserEntity.password]
-                val credits = it[UserEntity.credits]
-                optimusfly.bff.model.UserModel(id, email, password, idToken, credits)
-            }.firstOrNull()
-
-            if (user == null) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    UserResponse(success = false, data = USER_NOT_FOUND)
-                )
-                return@patch
-            }
-
-            val result = db.update(UserEntity) {
-                where { it.id eq userId }
-                set(it.credits, user.credits?.plus(credit))
-            }
-
-            val userUpdated = db.from(UserEntity).select().where {
-                UserEntity.email eq email
-            }.map {
-                val id = it[UserEntity.id]
-                val email = it[UserEntity.email]!!
-                val idToken = it[UserEntity.idToken]!!
-                val password = it[UserEntity.password]
-                val credits = it[UserEntity.credits]
-                optimusfly.bff.model.UserModel(id, email, password, idToken, credits)
-            }.firstOrNull()
-            if (result > 0) {
-                call.respond(
-                    HttpStatusCode.OK,
-                    UserResponse(success = true, data = userUpdated?.credits)
-                )
-            } else {
-                call.respond(
-                    HttpStatusCode.BadRequest, UserResponse(success = false, data = "Error updating subscription")
-                )
-                return@patch
-            }
-        }
 
     }
 
