@@ -12,4 +12,5 @@ object UserEntity: Table<Nothing>("user") {
     val password = varchar("password")
     val subscription = int("subscription")
     val idToken = varchar("id_token")
+    val credits = int("credits")
 }
