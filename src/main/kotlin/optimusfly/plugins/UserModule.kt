@@ -204,7 +204,8 @@ fun Application.userModule() {
                 val id = it[UserEntity.id]
                 val email = it[UserEntity.email]!!
                 val password = it[UserEntity.password]!!
-                optimusfly.bff.model.UserModel(id, email, password)
+                val idToken = it[UserEntity.idToken]!!
+                optimusfly.bff.model.UserModel(id, email, password, idToken)
             }.firstOrNull()
 
             if (user == null) {
@@ -430,31 +431,69 @@ fun Application.userModule() {
         post("/login-with-id-token") {
             val userCredential = call.receive<UserCredentialsWithToken>()
 
+            var userFound: optimusfly.bff.model.UserModel? = null
             val email = userCredential.email.toString()
-            val idToken = userCredential.idToken
+            val idToken = userCredential.hashedIdToken()
 
-            val user = db.from(UserEntity).select().where {
+            userFound = db.from(UserEntity).select().where {
                 UserEntity.email eq email
             }.map {
                 val id = it[UserEntity.id]
                 val email = it[UserEntity.email]!!
                 val idToken = it[UserEntity.idToken]!!
-                optimusfly.bff.model.UserModel(id, email, idToken)
+                val password = it[UserEntity.password]
+                optimusfly.bff.model.UserModel(id, email, password, idToken)
             }.firstOrNull()
 
-            if (user == null) {
-                registerUserFromLogin(db, userCredential, call, this, tokenManager)
+            if (userFound == null) {
+                val result = db.insert(UserEntity) {
+                    set(it.name, userCredential.name)
+                    set(it.lastName, userCredential.lastName)
+                    set(it.email, userCredential.email)
+                    set(it.password, "")
+                    set(it.idToken, userCredential.hashedIdToken())
+                }
+
+                if (result == SUCCESS_INSERT) {
+
+                    userFound = db.from(UserEntity).select().where {
+                        UserEntity.email eq email
+                    }.map {
+                        val id = it[UserEntity.id]
+                        val email = it[UserEntity.email]!!
+                        val password = it[UserEntity.password]!!
+                        val idToken = it[UserEntity.idToken]!!
+                        optimusfly.bff.model.UserModel(id, email, password, idToken)
+                    }.firstOrNull()
+                    userFound?.let {
+                        val token = tokenManager.generateJWTToken(it)
+                        call.respond(HttpStatusCode.OK, UserResponse(success = true, data = token))
+                    }?.run {
+                        call.respond(
+                            HttpStatusCode.BadRequest,
+                            UserResponse(success = true, data = "Error Creating Token")
+                        )
+                    }
+
+                } else {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        UserResponse(success = true, data = "Error Inserting Registering")
+                    )
+                }
+                return@post
             }
 
-            val doesIdTokenMatch = BCrypt.checkpw(idToken, user?.password)
+            val doesIdTokenMatch = BCrypt.checkpw(userCredential.idToken, userFound?.idToken)
 
             if (!doesIdTokenMatch) {
-                val error = ErrorMapper.INVALID_EMAIL_OR_PASSWORD
+                val error = ErrorMapper.INVALID_ID_TOKEN
                 call.respond(HttpStatusCode.Unauthorized, UserResponse(success = false, data = error))
                 return@post
             }
 
-            generateJWTToken(tokenManager, call, this, user)
+            val token = tokenManager.generateJWTToken(userFound)
+            call.respond(HttpStatusCode.OK, UserResponse(success = true, data = token))
         }
 
     }
@@ -463,66 +502,6 @@ fun Application.userModule() {
 
 fun formatPhoneNumber(phoneNumber: String): String {
     return phoneNumber.replace("-", "")
-}
-
-fun registerUserFromLogin(
-    db: Database,
-    credentials: UserCredentialsWithToken,
-    call: ApplicationCall,
-    launch: PipelineContext<Unit, ApplicationCall>,
-    tokenManager: TokenManager
-) {
-
-    launch.launch {
-        val email = credentials.email.toString()
-        val idTokenHashed = credentials.hashedIdToken()
-
-        val user = db.from(UserEntity).select().where { UserEntity.email eq email }.map { it[UserEntity.email] }
-            .firstOrNull()
-
-
-        if (user != null) {
-            return@launch
-        }
-
-        val result = db.insert(UserEntity) {
-            set(it.name, credentials.name)
-            set(it.lastName, credentials.lastName)
-            set(it.email, credentials.email)
-            set(it.password, idTokenHashed)
-            set(it.idToken, idTokenHashed)
-        }
-
-        if (result == SUCCESS_INSERT) {
-
-            val userInserted = db.from(UserEntity).select().where {
-                UserEntity.email eq email
-            }.map {
-                val id = it[UserEntity.id]
-                val email = it[UserEntity.email]!!
-                val idToken = it[UserEntity.idToken]!!
-                optimusfly.bff.model.UserModel(id, email, idToken)
-            }.firstOrNull()
-            generateJWTToken(tokenManager, call, launch, userInserted)
-        } else {
-            call.respond(HttpStatusCode.BadRequest, UserResponse(success = true, data = "Error Inserting Registering"))
-        }
-    }
-}
-
-fun generateJWTToken(
-    tokenManager: TokenManager,
-    call: ApplicationCall,
-    pipelineContext: PipelineContext<Unit, ApplicationCall>,
-    user: optimusfly.bff.model.UserModel?
-) {
-    pipelineContext.launch {
-        user?.let { user ->
-            val token = tokenManager.generateJWTToken(user)
-            call.respond(HttpStatusCode.OK, UserResponse(success = true, data = token))
-
-        }
-    }
 }
 
 fun sendWhatsappMessage(phoneNumber: String, launch: PipelineContext<Unit, ApplicationCall>) {

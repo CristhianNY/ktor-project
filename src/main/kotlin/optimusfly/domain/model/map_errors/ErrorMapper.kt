@@ -10,4 +10,5 @@ object ErrorMapper {
     const val PHONE_ALREADY_REGISTERED = "07"
     const val ERROR_INSERTING = "08"
     const val INVALID_EMAIL_OR_PASSWORD = "09"
+    const val INVALID_ID_TOKEN = "10"
 }
