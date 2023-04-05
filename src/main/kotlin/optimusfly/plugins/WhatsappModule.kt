@@ -129,11 +129,17 @@ fun Application.whatsappModule() {
                             if (response.isSuccessful) {
                                 logger.info("Sent a new message to user with the OpenAI response")
                                 if (user?.credit != 0) {
-                                    db.update(UserEntity) {
+                                    val rowAffected =db.update(UserEntity) {
                                         where { it.id eq user?.id!! }
                                         set(it.credits, user?.credit ?: 0 - 1)
                                     }
                                     logger.info("Updated the credits of the user ${user.id}")
+
+                                    if(rowAffected ==1){
+                                        logger.info("si se actualizo a ${user?.credit ?: 0 - 1}")
+                                    }else{
+                                        logger.info("No  se actualizo a ${user?.credit ?: 0 - 1}")
+                                    }
                                 }
                             }
                             if (!response.isSuccessful) {
