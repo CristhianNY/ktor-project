@@ -126,6 +126,16 @@ fun Application.whatsappModule() {
                         val response = whatsAppApi.sendMessage(
                             gptMessageResponse
                         )
+
+                        if (response.isSuccessful) {
+
+                            if (user?.credit != 0) {
+                                db.update(UserEntity) {
+                                    where { it.id eq user?.id!! }
+                                    set(it.credits, user?.credit ?: 0 - 1)
+                                }
+                            }
+                        }
                         if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
                     }
                 }
