@@ -69,94 +69,96 @@ fun Application.whatsappModule() {
 
             val whatsAppApi = WhatsAppApi()
 
-            if (user?.subscription == 1 || user?.credit ?: 0 > 0) {
-                logger.info("User has a valid subscription or enough credits")
+            if(user!=null){
+                if (user?.subscription == 1 || user?.credit ?: 0 > 0) {
+                    logger.info("User has a valid subscription or enough credits")
 
-                var gptAnswer: ChatGptResponseModel? = null
+                    var gptAnswer: ChatGptResponseModel? = null
 
-                val messageId = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.id
+                    val messageId = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.id
 
-                val messagePrompt =
-                    request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.text?.body.orEmpty()
+                    val messagePrompt =
+                        request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.text?.body.orEmpty()
 
-                db.insert(WhatsappMessageEntity) {
-                    set(it.idMessage, messageId)
-                }
+                    db.insert(WhatsappMessageEntity) {
+                        set(it.idMessage, messageId)
+                    }
 
-                val message: Int = db.from(WhatsappMessageEntity).select()
-                    .where { WhatsappMessageEntity.idMessage eq messageId.orEmpty() }
-                    .map { it[WhatsappMessageEntity.idMessage] }
-                    .size
+                    val message: Int = db.from(WhatsappMessageEntity).select()
+                        .where { WhatsappMessageEntity.idMessage eq messageId.orEmpty() }
+                        .map { it[WhatsappMessageEntity.idMessage] }
+                        .size
 
-                logger.info("Inserted a new WhatsApp message with id $messageId and prompt $messagePrompt")
+                    logger.info("Inserted a new WhatsApp message with id $messageId and prompt $messagePrompt")
 
-                if (request2.entry?.first()?.changes?.first()?.value?.statuses?.first() == null) {
-                    logger.info("Status is null, sending a new message to OpenAI")
+                    if (request2.entry?.first()?.changes?.first()?.value?.statuses?.first() == null) {
+                        logger.info("Status is null, sending a new message to OpenAI")
 
-                    launch(Dispatchers.IO) {
-                        val gptResponse = async {
-                            val openai = OpenAI(apiKey = "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")
+                        launch(Dispatchers.IO) {
+                            val gptResponse = async {
+                                val openai = OpenAI(apiKey = "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")
 
-                            val messages = listOf(
-                                mapOf("role" to "user", "content" to "$messagePrompt")
+                                val messages = listOf(
+                                    mapOf("role" to "user", "content" to "$messagePrompt")
+                                )
+
+                                val response: Response = openai.chatCompletion("gpt-3.5-turbo", messages)
+
+                                val gson = Gson()
+                                gptAnswer = gson.fromJson(response.body!!.string(), ChatGptResponseModel::class.java)
+                            }
+
+                            gptResponse.await()
+
+                            logger.info("Received a new response from OpenAI with message ${gptAnswer?.choices?.first()?.message?.content.orEmpty()}")
+
+                            val gptMessageResponse = MessageToSendModel(
+                                messaging_product = "whatsapp",
+                                to = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.from.orEmpty(),
+                                type = "text",
+                                text = Text(
+                                    preview_url = false,
+                                    body = gptAnswer?.choices?.first()?.message?.content.orEmpty()
+                                )
                             )
 
-                            val response: Response = openai.chatCompletion("gpt-3.5-turbo", messages)
-
-                            val gson = Gson()
-                            gptAnswer = gson.fromJson(response.body!!.string(), ChatGptResponseModel::class.java)
-                        }
-
-                        gptResponse.await()
-
-                        logger.info("Received a new response from OpenAI with message ${gptAnswer?.choices?.first()?.message?.content.orEmpty()}")
-
-                        val gptMessageResponse = MessageToSendModel(
-                            messaging_product = "whatsapp",
-                            to = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.from.orEmpty(),
-                            type = "text",
-                            text = Text(
-                                preview_url = false,
-                                body = gptAnswer?.choices?.first()?.message?.content.orEmpty()
+                            val response = whatsAppApi.sendMessage(
+                                gptMessageResponse
                             )
-                        )
 
-                        val response = whatsAppApi.sendMessage(
-                            gptMessageResponse
-                        )
-
-                        if (response.isSuccessful) {
-                            logger.info("Sent a new message to user with the OpenAI response")
-                            if (user?.credit != 0) {
-                                db.update(UserEntity) {
-                                    where { it.id eq user?.id!! }
-                                    set(it.credits, user?.credit ?: 0 - 1)
+                            if (response.isSuccessful) {
+                                logger.info("Sent a new message to user with the OpenAI response")
+                                if (user?.credit != 0) {
+                                    db.update(UserEntity) {
+                                        where { it.id eq user?.id!! }
+                                        set(it.credits, user?.credit ?: 0 - 1)
+                                    }
+                                    logger.info("Updated the credits of the user")
                                 }
-                                logger.info("Updated the credits of the user")
+                            }
+                            if (!response.isSuccessful) {
+                                logger.error("Failed to send a new message to user with the OpenAI response, HTTP code: ${response.code}")
+                                throw IOException("Unexpected code ${response.message} y ${response.code}")
                             }
                         }
-                        if (!response.isSuccessful) {
-                            logger.error("Failed to send a new message to user with the OpenAI response, HTTP code: ${response.code}")
-                            throw IOException("Unexpected code ${response.message} y ${response.code}")
-                        }
                     }
-                }
-            } else {
-                logger.info("User doesn't have a valid subscription or enough credits, sending a not credit message ${user.toString()}")
-                val notCreditMessageTemplate = MessageTemplate(
-                    messaging_product = "whatsapp",
-                    to = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.from.orEmpty(),
-                    type = "template",
-                    template = FacebookTemplate(name = "not_credit", language = FacebookLanguage("es_ES"))
-                )
+                } else {
+                    logger.info("User doesn't have a valid subscription or enough credits, sending a not credit message ${user.toString()}")
+                    val notCreditMessageTemplate = MessageTemplate(
+                        messaging_product = "whatsapp",
+                        to = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.from.orEmpty(),
+                        type = "template",
+                        template = FacebookTemplate(name = "not_credit", language = FacebookLanguage("es_ES"))
+                    )
 
-                val response = whatsAppApi.sendMessageTemplate(
-                    notCreditMessageTemplate
-                )
+                    val response = whatsAppApi.sendMessageTemplate(
+                        notCreditMessageTemplate
+                    )
 
-                if (!response.isSuccessful) {
-                    logger.error("Failed to send a not credit message to user, HTTP code: ${response.code}")
-                    throw IOException("Unexpected code ${response.message} y ${response.code}")
+                    if (!response.isSuccessful) {
+                        logger.error("Failed to send a not credit message to user, HTTP code: ${response.code}")
+                        throw IOException("Unexpected code ${response.message} y ${response.code}")
+                    }
                 }
             }
 
