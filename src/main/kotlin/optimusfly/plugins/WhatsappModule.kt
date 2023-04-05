@@ -133,7 +133,7 @@ fun Application.whatsappModule() {
                                         where { it.id eq user?.id!! }
                                         set(it.credits, user?.credit ?: 0 - 1)
                                     }
-                                    logger.info("Updated the credits of the user")
+                                    logger.info("Updated the credits of the user ${user.id}")
                                 }
                             }
                             if (!response.isSuccessful) {
