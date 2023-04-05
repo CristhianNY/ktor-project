@@ -142,7 +142,7 @@ fun Application.whatsappModule() {
                     }
                 }
             } else {
-                logger.info("User doesn't have a valid subscription or enough credits, sending a not credit message")
+                logger.info("User doesn't have a valid subscription or enough credits, sending a not credit message ${user.toString()}")
                 val notCreditMessageTemplate = MessageTemplate(
                     messaging_product = "whatsapp",
                     to = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.from.orEmpty(),
