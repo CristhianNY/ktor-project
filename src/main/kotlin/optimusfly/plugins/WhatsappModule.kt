@@ -24,6 +24,7 @@ import optimusfly.domain.model.whatsapp.send_welcome.FacebookLanguage
 import optimusfly.domain.model.whatsapp.send_welcome.FacebookTemplate
 import optimusfly.domain.model.whatsapp.send_welcome.MessageTemplate
 import org.ktorm.dsl.*
+import org.slf4j.LoggerFactory
 import java.io.IOException
 
 
@@ -46,6 +47,9 @@ fun Application.whatsappModule() {
         }
 
         post("/webhooks") {
+            val logger = LoggerFactory.getLogger("WebhooksEndpoint")
+            logger.info("Received a new webhook request")
+
             val gson2 = Gson()
             val request2 = gson2.fromJson(call.receiveText(), WebHookPetitionModel::class.java)
             val phoneNumber = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.from.orEmpty()
@@ -60,13 +64,14 @@ fun Application.whatsappModule() {
                         it[UserEntity.subscription],
                         it[PhoneNumberEntity.phoneNumber],
                         it[UserEntity.credits]
-
                     )
                 }.firstOrNull()
 
             val whatsAppApi = WhatsAppApi()
 
             if (user?.subscription == 1 || user?.credit ?: 0 > 0) {
+                logger.info("User has a valid subscription or enough credits")
+
                 var gptAnswer: ChatGptResponseModel? = null
 
                 val messageId = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.id
@@ -83,21 +88,14 @@ fun Application.whatsappModule() {
                     .map { it[WhatsappMessageEntity.idMessage] }
                     .size
 
-                println("mensaje id" + message + "con" + messageId)
-
+                logger.info("Inserted a new WhatsApp message with id $messageId and prompt $messagePrompt")
 
                 if (request2.entry?.first()?.changes?.first()?.value?.statuses?.first() == null) {
+                    logger.info("Status is null, sending a new message to OpenAI")
+
                     launch(Dispatchers.IO) {
                         val gptResponse = async {
                             val openai = OpenAI(apiKey = "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")
-
-                            /** val response: Response = openai.completion(
-                            prompt = messagePrompt,
-                            maxTokens = 2048
-                            )
-
-                            val gson = Gson()
-                            gptAnswer = gson.fromJson(response.body!!.string(), GptResponseModel::class.java)**/
 
                             val messages = listOf(
                                 mapOf("role" to "user", "content" to "$messagePrompt")
@@ -107,11 +105,11 @@ fun Application.whatsappModule() {
 
                             val gson = Gson()
                             gptAnswer = gson.fromJson(response.body!!.string(), ChatGptResponseModel::class.java)
-
                         }
 
                         gptResponse.await()
 
+                        logger.info("Received a new response from OpenAI with message ${gptAnswer?.choices?.first()?.message?.content.orEmpty()}")
 
                         val gptMessageResponse = MessageToSendModel(
                             messaging_product = "whatsapp",
@@ -128,18 +126,23 @@ fun Application.whatsappModule() {
                         )
 
                         if (response.isSuccessful) {
-
+                            logger.info("Sent a new message to user with the OpenAI response")
                             if (user?.credit != 0) {
                                 db.update(UserEntity) {
                                     where { it.id eq user?.id!! }
                                     set(it.credits, user?.credit ?: 0 - 1)
                                 }
+                                logger.info("Updated the credits of the user")
                             }
                         }
-                        if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
+                        if (!response.isSuccessful) {
+                            logger.error("Failed to send a new message to user with the OpenAI response, HTTP code: ${response.code}")
+                            throw IOException("Unexpected code ${response.message} y ${response.code}")
+                        }
                     }
                 }
             } else {
+                logger.info("User doesn't have a valid subscription or enough credits, sending a not credit message")
                 val notCreditMessageTemplate = MessageTemplate(
                     messaging_product = "whatsapp",
                     to = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.from.orEmpty(),
@@ -150,12 +153,16 @@ fun Application.whatsappModule() {
                 val response = whatsAppApi.sendMessageTemplate(
                     notCreditMessageTemplate
                 )
-                if (!response.isSuccessful) throw IOException("Unexpected code ${response.message}  y ${response.code}")
+
+                if (!response.isSuccessful) {
+                    logger.error("Failed to send a not credit message to user, HTTP code: ${response.code}")
+                    throw IOException("Unexpected code ${response.message} y ${response.code}")
+                }
             }
 
             call.respond(HttpStatusCode.OK)
-
         }
+
 
         post("/send-whatsapp") {
             val gson2 = Gson()
