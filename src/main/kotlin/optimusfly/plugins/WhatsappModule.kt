@@ -69,7 +69,7 @@ fun Application.whatsappModule() {
 
             val whatsAppApi = WhatsAppApi()
 
-            if(user!=null){
+            if (user != null) {
                 if (user?.subscription == 1 || user?.credit ?: 0 > 0) {
                     logger.info("User has a valid subscription or enough credits")
 
@@ -129,15 +129,17 @@ fun Application.whatsappModule() {
                             if (response.isSuccessful) {
                                 logger.info("Sent a new message to user with the OpenAI response")
                                 if (user?.credit != 0) {
-                                    val rowAffected =db.update(UserEntity) {
+                                    val credit: Int = user?.credit ?: 0
+                                    var newCredit = credit - 1
+                                    val rowAffected = db.update(UserEntity) {
                                         where { it.id eq user?.id!! }
-                                        set(it.credits, user?.credit ?: 0 - 1)
+                                        set(it.credits, newCredit)
                                     }
                                     logger.info("Updated the credits of the user ${user.id}")
 
-                                    if(rowAffected ==1){
-                                        logger.info("si se actualizo a ${user?.credit ?: 0 - 1}")
-                                    }else{
+                                    if (rowAffected == 1) {
+                                        logger.info("si se actualizo a $newCredit")
+                                    } else {
                                         logger.info("No  se actualizo a ${user?.credit ?: 0 - 1}")
                                     }
                                 }
