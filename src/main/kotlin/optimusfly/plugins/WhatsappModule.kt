@@ -99,6 +99,7 @@ fun Application.whatsappModule() {
                                 val openai = OpenAI(apiKey = "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")
 
                                 val messages = listOf(
+                                    mapOf("role" to "system", "content" to "You are a helpful assistant."),
                                     mapOf("role" to "user", "content" to "$messagePrompt")
                                 )
 
@@ -166,6 +167,8 @@ fun Application.whatsappModule() {
                     if (!response.isSuccessful) {
                         logger.error("Failed to send a not credit message to user, HTTP code: ${response.code}")
                         throw IOException("Unexpected code ${response.message} y ${response.code}")
+                    }else{
+                        call.respond(HttpStatusCode.OK)
                     }
                 }
             }
