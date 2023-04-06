@@ -156,7 +156,7 @@ fun Application.whatsappModule() {
                         messaging_product = "whatsapp",
                         to = request2.entry?.first()?.changes?.first()?.value?.messages?.first()?.from.orEmpty(),
                         type = "template",
-                        template = FacebookTemplate(name = "not_credit", language = FacebookLanguage("es_ES"))
+                        template = FacebookTemplate(name = "not_credit", language = FacebookLanguage("es"))
                     )
 
                     val response = whatsAppApi.sendMessageTemplate(
