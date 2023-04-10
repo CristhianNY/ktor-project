@@ -568,7 +568,7 @@ suspend fun verifyGoogleIdToken(idTokenString: String): GoogleIdToken.Payload? {
     val logger = LoggerFactory.getLogger("verifyGoogleIdToken")
     val transport = NetHttpTransport()
     val jsonFactory: JsonFactory = JacksonFactory()
-
+    logger.info("Tel id del token es $idTokenString")
     val verifier = GoogleIdTokenVerifier.Builder(transport, jsonFactory)
         .setAudience(listOf("350290328138-l97egloqh572lvlfdta27pp9529i8sku.apps.googleusercontent.com")) // Reemplaza "YOUR_CLIENT_ID" con el ID de cliente de Google de tu proyecto
         .build()
