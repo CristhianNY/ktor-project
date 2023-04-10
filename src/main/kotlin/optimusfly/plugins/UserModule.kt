@@ -576,7 +576,13 @@ suspend fun verifyGoogleIdToken(idTokenString: String): GoogleIdToken.Payload? {
     logger.info("este es el verifier $verifier")
 
     return try {
+
+        if(verifier==null){
+            logger.info("tenemos problemas por que es null")
+        }
+
         val idToken: GoogleIdToken = verifier.verify("eyJhbGciOiJSUzI1NiIsImtpZCI6Ijk2OTcxODA4Nzk2ODI5YTk3MmU3OWE5ZDFhOWZmZjExY2Q2MWIxZTMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIzNTAyOTAzMjgxMzgtbDk3ZWdsb3FoNTcybHZsZmR0YTI3cHA5NTI5aThza3UuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiIzNTAyOTAzMjgxMzgtcmhjYThhMTZva2VmZW01Ymd2bGhobW44MjJmdmE0OWYuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDU2NjMxMzQwNzYyODIwNDA2OTQiLCJlbWFpbCI6ImNyaXN0aGlhbjQ1NDVAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJDUklTVEhJQU4gQk9OSUxMQSIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BR05teXhhNnQtTjRBcVZvSktSVlpBWVV2R2FaQlpvcEVwSzNzeU45dmJkbFhnPXM5Ni1jIiwiZ2l2ZW5fbmFtZSI6IkNSSVNUSElBTiIsImZhbWlseV9uYW1lIjoiQk9OSUxMQSIsImxvY2FsZSI6ImVuIiwiaWF0IjoxNjgxMTYzNjQwLCJleHAiOjE2ODExNjcyNDB9.e0etieWMVl1h5LaC3jO63kBmuQge2Aj1k89-A-ByZe6VDy-Nb29Bnb2iD_ka5xYJ8S31GrCCL8IPAdBW-jHWeb5UQIwa0mxLtraNi5LsXiF6Hu46ydHyQtMF0ussGogaywDSdQGVbV25plXbH5Y0fPWG18OZTQ-RLmFxGjctmCZ31Q4Ev9QW6rk4zdu1hsDrEwkwMXM3js30qaYmR06omUyxz-VzS5BLZNyJfc3AKdBv2QLdNsBv_Vcf4uTrpG2zAElUXz_jXJL2r3Wp5R8nXjDzti4TphFN-PypCFXFkmRNcRCO5eb5PfWJz_pIxGx40-i7xs0yq2tL-NGrUWesww")
+
         if (idToken != null) {
             logger.info("Token verificado correctamente")
             idToken.payload
