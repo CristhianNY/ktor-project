@@ -17,7 +17,7 @@ class WhatsAppApi {
 
         val body = message.toJson()
         val request = Request.Builder()
-            .url("https://graph.facebook.com/v15.0/129746563358123/messages")
+            .url("https://graph.facebook.com/v16.0/129746563358123/messages")
             .post(RequestBody.create(mediaType, body))
             .addHeader("Content-Type", "application/json")
             .addHeader(
@@ -36,7 +36,7 @@ class WhatsAppApi {
         val mediaType = "application/json".toMediaTypeOrNull()
         val body = message.toJson()
         val request = Request.Builder()
-            .url("https://graph.facebook.com/v15.0/129746563358123/messages")
+            .url("https://graph.facebook.com/v16.0/129746563358123/messages")
             .post(RequestBody.create(mediaType, body))
             .addHeader("Content-Type", "application/json")
             .addHeader(
