@@ -38,6 +38,7 @@ import optimusfly.utils.TokenManager
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import org.mindrot.jbcrypt.BCrypt
+import org.slf4j.LoggerFactory
 import java.io.IOException
 
 
@@ -564,21 +565,25 @@ fun Application.userModule() {
 }
 
 suspend fun verifyGoogleIdToken(idTokenString: String): GoogleIdToken.Payload? {
-    val transport: NetHttpTransport = NetHttpTransport()
+    val logger = LoggerFactory.getLogger("verifyGoogleIdToken")
+    val transport = NetHttpTransport()
     val jsonFactory: JsonFactory = JacksonFactory()
 
     val verifier = GoogleIdTokenVerifier.Builder(transport, jsonFactory)
-        .setAudience(listOf("350290328138-3i1ujib0lo7me0sult2t0dqmij8kol3v.apps.googleusercontent.com")) // Reemplaza "YOUR_CLIENT_ID" con el ID de cliente de Google de tu proyecto
+        .setAudience(listOf("350290328138-l97egloqh572lvlfdta27pp9529i8sku.apps.googleusercontent.com")) // Reemplaza "YOUR_CLIENT_ID" con el ID de cliente de Google de tu proyecto
         .build()
 
     return try {
         val idToken: GoogleIdToken = verifier.verify(idTokenString)
         if (idToken != null) {
+            logger.info("Token verificado correctamente")
             idToken.payload
         } else {
+            logger.warn("Token no verificado")
             null
         }
     } catch (e: Exception) {
+        logger.error("Error al verificar el token: ${e.message}", e)
         null
     }
 }

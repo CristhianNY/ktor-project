@@ -52,5 +52,6 @@ dependencies {
     implementation("com.google.auth:google-auth-library-oauth2-http:1.16.0")
     implementation("com.google.api-client:google-api-client:1.32.1")
     implementation("com.google.http-client:google-http-client-jackson2:1.40.1")
-
+    implementation("org.slf4j:slf4j-api:1.7.32")
+    implementation("ch.qos.logback:logback-classic:1.2.9")
 }
