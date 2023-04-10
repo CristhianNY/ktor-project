@@ -49,8 +49,8 @@ dependencies {
     implementation ("com.squareup.okhttp3:okhttp:4.9.0")
     implementation("com.google.code.gson:gson:2.8.6")
     implementation("io.ktor:ktor-server-html-builder:$ktor_version")
-
-
-
+    implementation("com.google.auth:google-auth-library-oauth2-http:1.16.0")
+    implementation("com.google.api-client:google-api-client:1.32.1")
+    implementation("com.google.http-client:google-http-client-jackson2:1.40.1")
 
 }

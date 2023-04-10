@@ -1,5 +1,10 @@
 package optimusfly.plugins
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
+import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.JsonFactory
+import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.gson.Gson
 import com.typesafe.config.ConfigFactory
 import io.ktor.http.*
@@ -545,22 +550,39 @@ fun Application.userModule() {
                 return@post
             }
 
-            val doesIdTokenMatch = BCrypt.checkpw(userCredential.idToken, userFound?.idToken)
+            val payload = verifyGoogleIdToken(userCredential.idToken.orEmpty())
 
-            if (!doesIdTokenMatch) {
-                val error = ErrorMapper.INVALID_ID_TOKEN
-                call.respond(HttpStatusCode.Unauthorized, UserResponse(success = false, data = error))
-                return@post
+            if (payload != null) {
+                val token = tokenManager.generateJWTToken(userFound)
+                call.respond(HttpStatusCode.OK, UserResponse(success = true, data = token))
+            } else {
+                call.respond(HttpStatusCode.Unauthorized, "Invalid token")
             }
-
-            val token = tokenManager.generateJWTToken(userFound)
-            call.respond(HttpStatusCode.OK, UserResponse(success = true, data = token))
         }
-
-
     }
 
 }
+
+suspend fun verifyGoogleIdToken(idTokenString: String): GoogleIdToken.Payload? {
+    val transport: NetHttpTransport = NetHttpTransport()
+    val jsonFactory: JsonFactory = JacksonFactory()
+
+    val verifier = GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+        .setAudience(listOf("350290328138-coq21ij22h9o5h4gjp5nsn7dfgjn9hbr.apps.googleusercontent.com")) // Reemplaza "YOUR_CLIENT_ID" con el ID de cliente de Google de tu proyecto
+        .build()
+
+    return try {
+        val idToken: GoogleIdToken = verifier.verify(idTokenString)
+        if (idToken != null) {
+            idToken.payload
+        } else {
+            null
+        }
+    } catch (e: Exception) {
+        null
+    }
+}
+
 
 fun formatPhoneNumber(phoneNumber: String): String {
     return phoneNumber.replace("-", "")
