@@ -573,6 +573,8 @@ suspend fun verifyGoogleIdToken(idTokenString: String): GoogleIdToken.Payload? {
         .setAudience(listOf("350290328138-l97egloqh572lvlfdta27pp9529i8sku.apps.googleusercontent.com")) // Reemplaza "YOUR_CLIENT_ID" con el ID de cliente de Google de tu proyecto
         .build()
 
+    logger.info("este es el verifier $verifier")
+
     return try {
         val idToken: GoogleIdToken = verifier.verify(idTokenString)
         if (idToken != null) {
